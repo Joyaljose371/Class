@@ -558,7 +558,7 @@ function renderHomeClassSpace(posts){
      const voted=p.myVote&&Number(p.myVote.optionIndex)===i;
     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||"Student"));
     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i},this)"><span class="fill" style="width:${pct}%"></span><span class="content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Chosen:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
-  }).join("")}<label class="cs-vote-privacy"><input type="checkbox" ${!p.myVote||p.myVote.anonymous?"checked":""}> Hide my name from classmates</label></div>`:"";
+  }).join("")}<label class="cs-vote-privacy"><input type="checkbox" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates</label></div>`:"";
    let action="";
    if(p.type==="question")action=`<button class="cs-home-action" onclick="openAnswers('${p.id}')">💬 View / Answer</button>`;
    else if(p.type==="resource"&&p.resourceUrl)action=`<button class="cs-home-action" onclick="window.open('${esc(p.resourceUrl)}','_blank','noopener')">📚 Open resource</button>`;
@@ -604,7 +604,7 @@ function renderClassSpace(posts){
      const pct=total?Math.round((counts[i]/total)*100):0,voted=p.myVote&&Number(p.myVote.optionIndex)===i;
     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||"Student"));
     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i},this)"><span class="cs-poll-fill" style="width:${pct}%"></span><span class="cs-poll-content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Chosen:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
-  }).join("")}<label class="cs-vote-privacy"><input type="checkbox" ${!p.myVote||p.myVote.anonymous?"checked":""}> Hide my name from classmates</label></div>`:"";
+  }).join("")}<label class="cs-vote-privacy"><input type="checkbox" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates</label></div>`:"";
    return `<article class="cs-post ${admin?"admin":""}">
     <div class="cs-topline">${admin?'<span class="cs-admin-badge">★ Class Rep</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}<span class="cs-kind">${esc(p.type||"post")}</span></div>
      ${p.title?`<div class="cs-post-title">${esc(p.title)}</div>`:""}
