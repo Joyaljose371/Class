@@ -79,7 +79,7 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
  <div style="width:min(560px,92vw)">
   <div style="font-size:40px">🎓</div>
   <h2 style="margin:8px 0">Choose your name</h2>
-  <div class="small" style="margin-bottom:14px">Select your name, then enter the 4-digit code provided by Joyal.</div>
+  <div class="small" style="margin-bottom:14px">Select your name, then enter the 4-digit code provided by the Class Rep.</div>
   <input id="studentSearchBox" placeholder="Search your name…" style="width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#102d2b;color:white;margin-bottom:10px">
   <div id="studentChoiceList" style="display:grid;gap:8px;max-height:55vh;overflow:auto"></div>
  </div>
@@ -122,7 +122,7 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
    </div>
   </div>
     <div class="s5"><div class="section-head"><h2>Attendance</h2><span>Subject-wise</span></div><div id="homeAttendance" class="grid"></div></div>
-<div class="s12"><div class="section-head"><h2>Important Updates</h2><span>From class admin</span></div><div id="homeNotices" class="card"></div></div>
+<div class="s12"><div class="section-head"><h2>Important Updates</h2><span>From the Class Rep</span></div><div id="homeNotices" class="card"></div></div>
  </div>
 </section>
 <section id="timetablePage" class="page"><div class="section-head"><h2>Weekly Timetable</h2><span>Swipe horizontally on mobile</span></div><div id="fullTimetable" class="tt-wrap"></div></section>
@@ -175,7 +175,7 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
    <label id="csOptionsLabel" class="cs-label">Options — one per line</label>
    <textarea id="csOptions" class="cs-input" rows="4" placeholder="Option 1&#10;Option 2"></textarea>
    <div class="cs-field-note">
-    Classmates see vote totals only. Only Joyal can see who voted.
+    Classmates see vote totals only. Only the Class Rep can see who voted.
    </div>
   </div>
 
@@ -212,11 +212,11 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
   <label class="cs-label">Who should see this reply?</label>
   <select id="csAnswerAudience" class="cs-input">
    <option value="class">Whole class</option>
-   <option value="admin">Joyal · Admin only</option>
+  <option value="admin">Class Rep only</option>
   </select>
 
   <div class="cs-field-note">
-   “Admin only” replies are visible to Joyal but are not shown to other students.
+  “Class Rep only” replies are visible to the Class Rep but are not shown to other students.
   </div>
 
   <input id="csAnswerPostId" type="hidden">
@@ -306,6 +306,10 @@ function renderChoices(filter=""){
 }
 function chooseStudent(id){
  const entry=directory.find(x=>x.id===id);
+ if(entry?.name.trim().toLowerCase()==="joyal jose"){
+   window.location.assign("./");
+   return;
+ }
  pendingPortalId.value=id;
  studentCodeName.textContent=entry?.name||"Student";
  studentAccessCodeInput.value="";
@@ -344,7 +348,7 @@ async function verifyStudentCode(){
    console.warn("Student verification failed",e);
    studentCodeError.style.display="block";
    studentCodeError.textContent=e.code==="permission-denied"
-     ?"Incorrect access code. Ask Joyal for your current code."
+    ?"Incorrect access code. Ask the Class Rep for your current code."
      : e.message;
  }
 }
@@ -419,7 +423,7 @@ function openCsComposer(type){
  const cfg={
    poll:{
      title:"Create a Poll",
-    help:"Ask the class to choose between options. Classmates see totals only; Joyal can see the voter list.",
+    help:"Ask the class to choose between options. Classmates see totals only; the Class Rep can see the voter list.",
      titleLabel:"Poll question",
      titlePlaceholder:"Which day is best for the seminar?",
      textLabel:"Context / instruction (optional)",
@@ -428,7 +432,7 @@ function openCsComposer(type){
    },
    question:{
      title:"Ask the Class",
-     help:"Post a question for classmates. Each person replying can choose whether their answer is visible to the whole class or only to Joyal.",
+    help:"Post a question for classmates. Each person replying can choose whether their answer is visible to the whole class or only to the Class Rep.",
      titleLabel:"Your question",
      titlePlaceholder:"Does anyone have the HSP Unit 3 notes?",
      textLabel:"More details (optional)",
@@ -437,7 +441,7 @@ function openCsComposer(type){
    },
    suggestion:{
      title:"Share a Suggestion",
-     help:"Suggest an idea, concern or improvement. You may hide your name from classmates; Joyal will still be able to identify the sender for moderation.",
+    help:"Suggest an idea, concern or improvement. You may hide your name from classmates; the Class Rep can still identify the sender for moderation.",
      titleLabel:"Suggestion title",
      titlePlaceholder:"Suggestion for our next class activity",
      textLabel:"Your suggestion",
@@ -455,7 +459,7 @@ function openCsComposer(type){
    },
    rsvp:{
      title:"Create an RSVP",
-    help:"Ask the class to confirm participation. Classmates see response totals only; Joyal can see the voter list.",
+    help:"Ask the class to confirm participation. Classmates see response totals only; the Class Rep can see the voter list.",
      titleLabel:"Event / activity",
      titlePlaceholder:"Workshop attendance confirmation",
      textLabel:"Details / instruction",
@@ -552,7 +556,7 @@ function renderHomeClassSpace(posts){
    else if(p.type==="resource"&&p.resourceUrl)action=`<button class="cs-home-action" onclick="window.open('${esc(p.resourceUrl)}','_blank','noopener')">📚 Open resource</button>`;
    return `<article class="cs-home-post ${admin?"admin":""}">
      <div class="cs-topline">
-       ${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}
+      ${admin?'<span class="cs-admin-badge">★ Class Rep</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}
        <span class="cs-kind">${esc(p.type||"post")}</span>
      </div>
      ${p.title?`<div class="cs-home-title">${esc(p.title)}</div>`:""}
@@ -593,7 +597,7 @@ function renderClassSpace(posts){
     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="cs-poll-fill" style="width:${pct}%"></span><span class="cs-poll-content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button>`;
   }).join("")}</div>`:"";
    return `<article class="cs-post ${admin?"admin":""}">
-     <div class="cs-topline">${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}<span class="cs-kind">${esc(p.type||"post")}</span></div>
+    <div class="cs-topline">${admin?'<span class="cs-admin-badge">★ Class Rep</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}<span class="cs-kind">${esc(p.type||"post")}</span></div>
      ${p.title?`<div class="cs-post-title">${esc(p.title)}</div>`:""}
      ${p.text?`<div class="cs-post-text">${esc(p.text)}</div>`:""}
      ${p.resourceUrl?`<a class="cs-resource" href="${esc(p.resourceUrl)}" target="_blank" rel="noopener">Open resource ↗</a>`:""}
@@ -643,7 +647,7 @@ async function loadAnswers(postId){
  try{
    const q=await db.collection("classSpace").doc(postId).collection("answers").orderBy("createdAtMs").get();
    const a=q.docs.map(d=>d.data());
-   csAnswersList.innerHTML=a.length?a.map(x=>`<div class="cs-answer ${x.isAdmin?"admin":""}"><div class="cs-answer-author">${x.isAdmin?"★ Joyal · Admin":esc(x.authorName||"Student")}</div><div class="cs-answer-text">${esc(x.text||"")}</div></div>`).join(""):'<div class="small">No answers yet.</div>';
+  csAnswersList.innerHTML=a.length?a.map(x=>`<div class="cs-answer ${x.isAdmin?"admin":""}"><div class="cs-answer-author">${x.isAdmin?"★ Class Rep":esc(x.authorName||"Student")}</div><div class="cs-answer-text">${esc(x.text||"")}</div></div>`).join(""):'<div class="small">No answers yet.</div>';
  }catch(e){csAnswersList.innerHTML=`<div class="small">${esc(e.message)}</div>`}
 }
 async function submitAnswer(){
@@ -662,7 +666,7 @@ async function submitAnswer(){
    if(audience==="admin"){
      await db.collection("classSpace").doc(postId).collection("adminAnswers").add(payload);
      csAnswerText.value="";
-     alert("Your reply was sent privately to Joyal · Admin.");
+    alert("Your reply was sent privately to the Class Rep.");
    }else{
      await db.collection("classSpace").doc(postId).collection("answers").add(payload);
      csAnswerText.value="";
