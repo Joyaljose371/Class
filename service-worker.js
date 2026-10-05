@@ -1,8 +1,9 @@
-const CACHE='classpilot-v10-8-composer-markup-fix';
+const CACHE='classpilot-v10-9-student-pwa-private-votes';
 const SHELL=[
   './',
   './index.html',
   './student.html',
+  './student.webmanifest',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'

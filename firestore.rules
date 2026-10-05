@@ -59,6 +59,12 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/studentPortalDirectory/current).data.ownerUid == request.auth.uid;
     }
 
+    function isCurrentStudent(portalId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId == portalId;
+    }
+
     // Shared ClassSpace interaction feed.
     match /classSpace/{postId} {
       allow read: if request.auth != null;
@@ -78,34 +84,40 @@ service cloud.firestore {
 
       allow update, delete: if isClassAdmin();
 
+      // Legacy votes may contain portal IDs. Keep them private to the admin.
       match /votes/{portalId} {
+        allow read, write: if isClassAdmin();
+      }
+
+      // Public results contain no student portal ID or display name.
+      match /publicVotes/{voteId} {
         allow read: if request.auth != null;
-
-        // One vote document per selected student, even when multiple students
-        // use the same physical device/browser.
         allow create, update: if request.auth != null
-          && request.resource.data.ownerUid == request.auth.uid
-          && request.resource.data.portalId == portalId
-          && exists(/databases/$(database)/documents/studentPortals/$(portalId));
-
+          && request.resource.data.keys().hasOnly(['ownerUid', 'optionIndex', 'anonymous', 'updatedAtMs'])
+          && request.resource.data.optionIndex is int
+          && request.resource.data.anonymous is bool
+          && request.resource.data.updatedAtMs is int
+          && (isClassAdmin() || request.resource.data.ownerUid == request.auth.uid)
+          && (isClassAdmin()
+              || !exists(/databases/$(database)/documents/classSpace/$(postId)/publicVotes/$(voteId))
+              || resource.data.ownerUid == request.auth.uid);
         allow delete: if isClassAdmin()
-          || (request.auth != null
-              && resource.data.ownerUid == request.auth.uid);
+          || (request.auth != null && resource.data.ownerUid == request.auth.uid);
       }
 
       // Private voter identity. The document key is the student portal ID,
       // allowing multiple selected students on one device to vote separately.
       match /voteIdentities/{portalId} {
-        allow read: if isClassAdmin();
+        allow get: if isClassAdmin() || isCurrentStudent(portalId);
+        allow list: if isClassAdmin();
 
-        allow create, update: if request.auth != null
+        allow create, update: if isClassAdmin() || (isCurrentStudent(portalId)
           && request.resource.data.ownerUid == request.auth.uid
           && request.resource.data.portalId == portalId
-          && exists(/databases/$(database)/documents/studentPortals/$(portalId));
+          && request.resource.data.voteId is string
+          && request.resource.data.actualName is string);
 
-        allow delete: if isClassAdmin()
-          || (request.auth != null
-              && resource.data.ownerUid == request.auth.uid);
+        allow delete: if isClassAdmin();
       }
 
       match /answers/{answerId} {

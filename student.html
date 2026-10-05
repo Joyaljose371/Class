@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071b1b">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ClassPilot">
+<link rel="manifest" href="student.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ClassPilot Student</title>
 <style>
 :root{--bg:#061919;--surface:#102d2b;--text:#f4f8f7;--muted:#9cb2ae;--line:rgba(255,255,255,.08);--shadow:0 22px 55px rgba(0,0,0,.28)}
@@ -58,6 +62,15 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 .cs-voter-list{margin-top:5px;font-size:9px;color:#9eb5b0;line-height:1.45}
 .cs-voter-list b{color:#dce8e5}
 .cs-answer-private-note{padding:9px 10px;border-radius:10px;border:1px solid #b59446;background:#312a1d;color:#f0d58a;font-size:10px;margin-top:8px}
+.install-prompt{position:fixed;z-index:120;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:min(390px,calc(100vw - 24px));padding:14px;background:#f4f8f7;color:#102623;border:1px solid rgba(0,0,0,.14);border-radius:14px;box-shadow:0 18px 55px rgba(0,0,0,.42);display:none}
+.install-prompt.show{display:block;animation:install-in .22s ease-out}
+.install-prompt-head{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.install-prompt-title{font-size:14px;font-weight:900}
+.install-prompt-copy{font-size:11px;color:#48615d;line-height:1.45;margin-top:4px}
+.install-prompt-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.install-prompt button{border:1px solid #c8d7d3;background:#fff;color:#183b35;border-radius:8px;padding:8px 11px;font-size:11px;font-weight:800}
+.install-prompt button.install-now{background:#17665c;border-color:#17665c;color:white}
+@keyframes install-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 </style>
 </head>
@@ -88,6 +101,10 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 
 <div id="loading" class="loading"><div><div style="font-size:38px">🎓</div><b>Loading your ClassPilot…</b><div class="small">Read-only student view</div></div></div>
 <div id="error" class="error" style="display:none"></div>
+<aside id="installPrompt" class="install-prompt" role="status" aria-live="polite">
+ <div class="install-prompt-head"><div><div class="install-prompt-title">Install ClassPilot Student</div><div id="installPromptCopy" class="install-prompt-copy">Add the student portal to your home screen for quick access.</div></div><button aria-label="Dismiss install prompt" onclick="dismissInstallPrompt()">✕</button></div>
+ <div class="install-prompt-actions"><button onclick="dismissInstallPrompt()">Not now</button><button id="installNowButton" class="install-now" onclick="installStudentApp()">Install</button></div>
+</aside>
 <div id="app" class="app" style="display:none">
 <header class="top"><div class="hello"><div id="avatar" class="avatar">S</div><div><div class="eyebrow">Hello 👋 <span style="opacity:.55">· v10.8</span></div><div id="studentName" class="name">Student</div><div id="regNo" class="small"></div></div></div><div style="display:flex;gap:8px;align-items:center"><button onclick="changeStudent()" style="border:1px solid var(--line);background:rgba(255,255,255,.04);color:white;border-radius:999px;padding:8px 10px;font-size:10px">Change student</button><div class="live" id="portalStatus">● View only</div></div></header>
 <section id="home" class="page active">
@@ -158,7 +175,7 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
    <label id="csOptionsLabel" class="cs-label">Options — one per line</label>
    <textarea id="csOptions" class="cs-input" rows="4" placeholder="Option 1&#10;Option 2"></textarea>
    <div class="cs-field-note">
-    Students can see exact vote counts and voter names. Each voter can hide their name from classmates; Joyal can still see the real voter.
+    Classmates see vote totals only. Only Joyal can see who voted.
    </div>
   </div>
 
@@ -402,7 +419,7 @@ function openCsComposer(type){
  const cfg={
    poll:{
      title:"Create a Poll",
-     help:"Ask the class to choose between options. Everyone can see exact counts and voter names unless an individual voter chooses to be anonymous. Joyal can always see who voted.",
+    help:"Ask the class to choose between options. Classmates see totals only; Joyal can see the voter list.",
      titleLabel:"Poll question",
      titlePlaceholder:"Which day is best for the seminar?",
      textLabel:"Context / instruction (optional)",
@@ -438,7 +455,7 @@ function openCsComposer(type){
    },
    rsvp:{
      title:"Create an RSVP",
-     help:"Ask the class to confirm participation. Everyone can see exact response counts and names unless a voter chooses to hide their name; Joyal still sees the identity.",
+    help:"Ask the class to confirm participation. Classmates see response totals only; Joyal can see the voter list.",
      titleLabel:"Event / activity",
      titlePlaceholder:"Workshop attendance confirmation",
      textLabel:"Details / instruction",
@@ -500,9 +517,10 @@ async function loadHomeClassSpace(){
    for(const p of posts){
      let votes=[],myVote=null;
      if(p.type==="poll"||p.type==="rsvp"){
-       const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
+      const vs=await db.collection("classSpace").doc(p.id).collection("publicVotes").get();
        votes=vs.docs.map(d=>({id:d.id,...d.data()}));
-       myVote=votes.find(v=>v.id===selectedPortalId)||null;
+      const identity=await db.collection("classSpace").doc(p.id).collection("voteIdentities").doc(selectedPortalId).get();
+      myVote=identity.exists?votes.find(v=>v.id===identity.data().voteId)||null:null;
      }
      enriched.push({...p,votes,myVote});
    }
@@ -527,9 +545,8 @@ function renderHomeClassSpace(posts){
    const poll=opts.length?`<div class="cs-home-poll">${opts.map((o,i)=>{
      const pct=total?Math.round((counts[i]/total)*100):0;
      const voted=p.myVote&&Number(p.myVote.optionIndex)===i;
-     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||v.authorName||"Student"));
-     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="fill" style="width:${pct}%"></span><span class="content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Voted:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
-   }).join("")}<label class="cs-vote-privacy"><input type="checkbox" id="anonVote_${p.id}" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates when I vote</label></div>`:"";
+    return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="fill" style="width:${pct}%"></span><span class="content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button>`;
+  }).join("")}</div>`:"";
    let action="";
    if(p.type==="question")action=`<button class="cs-home-action" onclick="openAnswers('${p.id}')">💬 View / Answer</button>`;
    else if(p.type==="resource"&&p.resourceUrl)action=`<button class="cs-home-action" onclick="window.open('${esc(p.resourceUrl)}','_blank','noopener')">📚 Open resource</button>`;
@@ -556,9 +573,10 @@ async function loadClassSpace(){
    for(const p of classSpacePosts){
      let votes=[],myVote=null;
      if(p.type==="poll"||p.type==="rsvp"){
-       const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
+      const vs=await db.collection("classSpace").doc(p.id).collection("publicVotes").get();
        votes=vs.docs.map(d=>({id:d.id,...d.data()}));
-       myVote=votes.find(v=>v.id===selectedPortalId)||null;
+      const identity=await db.collection("classSpace").doc(p.id).collection("voteIdentities").doc(selectedPortalId).get();
+      myVote=identity.exists?votes.find(v=>v.id===identity.data().voteId)||null:null;
      }
      enriched.push({...p,votes,myVote});
    }
@@ -572,9 +590,8 @@ function renderClassSpace(posts){
    const total=(p.votes||[]).length;
    const poll=opts.length?`<div class="cs-poll">${opts.map((o,i)=>{
      const pct=total?Math.round((counts[i]/total)*100):0,voted=p.myVote&&Number(p.myVote.optionIndex)===i;
-     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||v.authorName||"Student"));
-     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="cs-poll-fill" style="width:${pct}%"></span><span class="cs-poll-content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Voted:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
-   }).join("")}<label class="cs-vote-privacy"><input type="checkbox" id="anonVote_${p.id}" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates when I vote</label></div>`:"";
+    return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="cs-poll-fill" style="width:${pct}%"></span><span class="cs-poll-content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button>`;
+  }).join("")}</div>`:"";
    return `<article class="cs-post ${admin?"admin":""}">
      <div class="cs-topline">${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}<span class="cs-kind">${esc(p.type||"post")}</span></div>
      ${p.title?`<div class="cs-post-title">${esc(p.title)}</div>`:""}
@@ -590,27 +607,28 @@ async function voteClassSpace(postId,optionIndex){
  if(!await ensureClassSpaceAuth())return;
  if(!selectedPortalId || !selectedStudentName())return alert("Choose your student name first.");
  try{
-   const anonymous=!!document.getElementById(`anonVote_${postId}`)?.checked;
    const actualName=selectedStudentName()||"Student";
-   const voterKey=selectedPortalId;
-
-   await db.collection("classSpace").doc(postId).collection("votes").doc(voterKey).set({
+   const postRef=db.collection("classSpace").doc(postId);
+   const identityRef=postRef.collection("voteIdentities").doc(selectedPortalId);
+   const identitySnap=await identityRef.get();
+   const voteId=identitySnap.exists&&identitySnap.data().voteId
+     ?identitySnap.data().voteId
+     :crypto.randomUUID().replace(/-/g,"");
+   const batch=db.batch();
+   batch.set(postRef.collection("publicVotes").doc(voteId),{
      ownerUid:auth.currentUser.uid,
-     portalId:voterKey,
-     displayName:anonymous?"Anonymous":actualName,
-     anonymous,
+    anonymous:true,
      optionIndex:Number(optionIndex),
      updatedAtMs:Date.now()
    });
-
-   // Private real identity for admin. The document key is the selected student,
-   // so multiple students can vote separately on the same physical device.
-   await db.collection("classSpace").doc(postId).collection("voteIdentities").doc(voterKey).set({
+   batch.set(identityRef,{
      ownerUid:auth.currentUser.uid,
-     portalId:voterKey,
+     portalId:selectedPortalId,
      actualName,
+     voteId,
      updatedAtMs:Date.now()
-   });
+   },{merge:true});
+   await batch.commit();
 
    await loadClassSpace();await loadHomeClassSpace();
  }catch(e){alert(e.message)}
@@ -698,6 +716,34 @@ async function init(){
 },12000);
  }catch(e){showError(e.message)}
 }
+let deferredStudentInstall=null;
+const installPrompt=document.getElementById("installPrompt");
+const installPromptCopy=document.getElementById("installPromptCopy");
+function isStudentInstalled(){return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true}
+function showStudentInstallPrompt(){if(!isStudentInstalled()&&!sessionStorage.getItem("classpilot_student_install_dismissed"))installPrompt.classList.add("show")}
+function dismissInstallPrompt(){installPrompt.classList.remove("show");sessionStorage.setItem("classpilot_student_install_dismissed","1")}
+async function installStudentApp(){
+ if(!deferredStudentInstall){
+   installPromptCopy.textContent="Open your browser menu and choose Install app or Add to Home Screen.";
+   return;
+ }
+ deferredStudentInstall.prompt();
+ const result=await deferredStudentInstall.userChoice;
+ deferredStudentInstall=null;
+ if(result.outcome==="accepted")installPrompt.classList.remove("show");
+}
+function setupStudentInstall(){
+ if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js").catch(console.warn);
+ window.addEventListener("beforeinstallprompt",event=>{
+   event.preventDefault();
+   deferredStudentInstall=event;
+   installPromptCopy.textContent="Install the student portal on this device for quick access.";
+   showStudentInstallPrompt();
+ });
+ window.addEventListener("appinstalled",()=>installPrompt.classList.remove("show"));
+ if(!isStudentInstalled())setTimeout(showStudentInstallPrompt,700);
+}
+setupStudentInstall();
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&selectedPortalId)loadPortalData(false)});
 window.addEventListener("focus",()=>{if(selectedPortalId)loadPortalData(false)});
 init();

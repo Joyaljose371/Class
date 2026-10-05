@@ -1345,15 +1345,52 @@ async function loadAdminClassSpace(){
    const posts=snap.docs.map(d=>({id:d.id,...d.data()}));
    const voteCounts={};
    for(const p of posts.filter(x=>x.type==="poll"||x.type==="rsvp")){
-     const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
-     const ids=await db.collection("classSpace").doc(p.id).collection("voteIdentities").get();
-     const identityMap=Object.fromEntries(ids.docs.map(d=>[d.id,d.data()?.actualName||"Student"]));
+     const postRef=db.collection("classSpace").doc(p.id);
+     const [legacyVotes,initialIdentities]=await Promise.all([
+       postRef.collection("votes").get(),
+       postRef.collection("voteIdentities").get()
+     ]);
+     if(!legacyVotes.empty){
+       const identityDocs=Object.fromEntries(initialIdentities.docs.map(d=>[d.id,d.data()]));
+       const migration=db.batch();
+       legacyVotes.docs.forEach(oldVote=>{
+         const identity=identityDocs[oldVote.id]||{};
+         let voteId=identity.voteId;
+         if(!voteId){
+           voteId=crypto.randomUUID().replace(/-/g,"");
+           migration.set(postRef.collection("voteIdentities").doc(oldVote.id),{
+             ownerUid:currentUser.uid,
+             portalId:oldVote.id,
+             actualName:identity.actualName||oldVote.data().displayName||"Student",
+             voteId,
+             updatedAtMs:oldVote.data().updatedAtMs||Date.now()
+           },{merge:true});
+           migration.set(postRef.collection("publicVotes").doc(voteId),{
+             ownerUid:oldVote.data().ownerUid||currentUser.uid,
+             optionIndex:Number(oldVote.data().optionIndex),
+             anonymous:!!oldVote.data().anonymous,
+             updatedAtMs:oldVote.data().updatedAtMs||Date.now()
+           });
+         }
+         migration.delete(oldVote.ref);
+       });
+       await migration.commit();
+     }
+     const [vs,ids]=await Promise.all([
+       postRef.collection("publicVotes").get(),
+       postRef.collection("voteIdentities").get()
+     ]);
+     const identityMap={};
+     ids.docs.forEach(d=>{
+       const identity=d.data()||{};
+       identityMap[identity.voteId||d.id]=identity.actualName||"Student";
+     });
      const counts=(p.options||[]).map(()=>0), voters=(p.options||[]).map(()=>[]);
      vs.docs.forEach(v=>{
        const vd=v.data(),i=Number(vd.optionIndex);
        if(Number.isInteger(i)&&counts[i]!=null){
          counts[i]++;
-         const actual=identityMap[v.id]||vd.displayName||vd.authorName||"Student";
+         const actual=identityMap[v.id]||"Student";
          voters[i].push(vd.anonymous?`${actual} (anonymous to class)`:actual);
        }
      });
