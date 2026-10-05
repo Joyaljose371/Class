@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Read-only student portal records. A student can read only the portal
+    // assigned to their verified Firebase session.
+    match /studentPortals/{portalId} {
+      allow get: if isClassAdmin()
+        || (
+          request.auth != null
+          && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
+          && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId == portalId
+        );
+      allow list: if false;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Public read-only directory used by the single shared student page.
+    match /studentPortalDirectory/{docId} {
+      allow get: if docId == "current";
+      allow list: if false;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && resource.data.ownerUid == request.auth.uid;
+    }
+
+
+    // Private per-student access codes. Only the ClassPilot owner can read/write.
+    match /studentPortalSecrets/{portalId} {
+      allow read, write: if isClassAdmin();
+    }
+
+    // Per-browser/session student verification.
+    // The create/update succeeds only when the supplied code matches the
+    // protected code for the selected student portal.
+    match /studentSessions/{userId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == userId;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.portalId is string
+        && request.resource.data.accessCode
+           == get(/databases/$(database)/documents/studentPortalSecrets/$(request.resource.data.portalId)).data.accessCode;
+
+      allow delete: if request.auth != null
+                    && (request.auth.uid == userId || isClassAdmin());
+    }
+
+    function isClassAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/studentPortalDirectory/current).data.ownerUid == request.auth.uid;
+    }
+
+    // Shared ClassSpace interaction feed.
+    match /classSpace/{postId} {
+      allow read: if request.auth != null;
+
+      // Normal students/anonymous users can create only non-admin posts.
+      // Admin lookup is NOT needed for this branch.
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.isAdmin == false;
+
+      // Only the ClassPilot owner can create highlighted admin posts.
+      allow create: if request.auth != null
+        && isClassAdmin()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.isAdmin == true
+        && request.resource.data.authorName == "Joyal";
+
+      allow update, delete: if isClassAdmin();
+
+      match /votes/{portalId} {
+        allow read: if request.auth != null;
+
+        // One vote document per selected student, even when multiple students
+        // use the same physical device/browser.
+        allow create, update: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.portalId == portalId
+          && exists(/databases/$(database)/documents/studentPortals/$(portalId));
+
+        allow delete: if isClassAdmin()
+          || (request.auth != null
+              && resource.data.ownerUid == request.auth.uid);
+      }
+
+      // Private voter identity. The document key is the student portal ID,
+      // allowing multiple selected students on one device to vote separately.
+      match /voteIdentities/{portalId} {
+        allow read: if isClassAdmin();
+
+        allow create, update: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.portalId == portalId
+          && exists(/databases/$(database)/documents/studentPortals/$(portalId));
+
+        allow delete: if isClassAdmin()
+          || (request.auth != null
+              && resource.data.ownerUid == request.auth.uid);
+      }
+
+      match /answers/{answerId} {
+        allow read: if request.auth != null;
+
+        // Normal student answer.
+        allow create: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.isAdmin == false;
+
+        // Highlighted admin answer.
+        allow create: if request.auth != null
+          && isClassAdmin()
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.isAdmin == true
+          && request.resource.data.authorName == "Joyal";
+
+        allow update: if false;
+        allow delete: if isClassAdmin()
+          || (request.auth != null && resource.data.ownerUid == request.auth.uid);
+      }
+
+      // Replies intentionally sent only to Joyal/Admin.
+      match /adminAnswers/{answerId} {
+        allow read: if isClassAdmin();
+        allow create: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.isAdmin == false
+          && request.resource.data.audience == "admin";
+        allow update: if false;
+        allow delete: if isClassAdmin()
+          || (request.auth != null && resource.data.ownerUid == request.auth.uid);
+      }
+    }
+  }
+}

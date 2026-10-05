@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071b1b">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ClassPilot Student</title>
+<style>
+:root{--bg:#061919;--surface:#102d2b;--text:#f4f8f7;--muted:#9cb2ae;--line:rgba(255,255,255,.08);--shadow:0 22px 55px rgba(0,0,0,.28)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+body{background:radial-gradient(circle at 90% 0%,rgba(114,86,91,.55),transparent 30%),radial-gradient(circle at 0% 38%,rgba(0,103,105,.22),transparent 26%),linear-gradient(180deg,#081e1d,#051716 70%)}
+button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px}
+.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#22a6a8,#ef6877);font-weight:900}.hello{display:flex;align-items:center;gap:11px}.eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}.name{font-size:19px;font-weight:850;margin-top:2px}.small{font-size:11px;color:var(--muted)}.live{border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:11px;background:rgba(255,255,255,.035)}
+.page{display:none}.page.active{display:block}.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:22px 0 10px}.section-head h2{font-size:18px;margin:0}.section-head span{font-size:11px;color:var(--muted)}
+.hero{background:linear-gradient(135deg,rgba(80,57,69,.92),rgba(57,77,70,.88));border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-54px;top:-70px;background:rgba(255,255,255,.07)}
+.next-label{font-size:12px;color:#e9cccc}.next-time{font-size:11px;color:#c4d2cf;margin-top:5px}.next-subject{font-size:22px;font-weight:900;margin:12px 0 3px}.next-faculty{font-size:12px;color:#d7e3e0}
+.period-row{display:flex;gap:8px;overflow:auto;padding:3px 0 7px;scrollbar-width:none}.period{min-width:92px;border:1px solid var(--line);border-radius:15px;padding:10px;background:rgba(255,255,255,.035);text-align:center}.period.now{background:#f4f6f3;color:#132623}.period .h{font-weight:900;font-size:12px}.period .t{font-size:9px;margin-top:4px;color:var(--muted)}.period.now .t{color:#51615e}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:13px}.s5{grid-column:span 5}.s7{grid-column:span 7}.s12{grid-column:span 12}
+.card{border:1px solid var(--line);background:linear-gradient(180deg,var(--surface),#0b2624);border-radius:18px;padding:15px;min-width:0}.card-title{font-size:13px;font-weight:850}
+.deadline{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.deadline:last-child{border:0}.datebox{height:44px;border-radius:12px;background:#183c38;display:grid;place-items:center;text-align:center;font-weight:900}.datebox span{display:block;font-size:9px;color:var(--muted);font-weight:600}.priority{font-size:9px;font-weight:900;padding:5px 7px;border-radius:999px;background:#3a2c26;color:#ffc96e}.priority.High{background:#40242a;color:#ff8693}.priority.Low{background:#17372f;color:#76dfb7}
+.att-card{padding:13px;border:1px solid var(--line);border-radius:16px;background:#0d2a27}.att-top{display:flex;justify-content:space-between;gap:10px}.pct{font-size:25px;font-weight:900}.bar{height:8px;background:#1b3a36;border-radius:999px;overflow:hidden;margin:10px 0 8px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#3ec8c9,#64daa6)}.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{font-size:10px;color:var(--muted)}.stat b{color:var(--text)}
+.week{display:grid;grid-template-columns:110px repeat(6,minmax(110px,1fr));min-width:800px}.tt-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px}.tt-cell{padding:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:86px;background:#0d2926}.tt-head{background:#153632;position:sticky;top:0;z-index:2;font-size:11px;font-weight:900}.tt-day{position:sticky;left:0;background:#12322f;z-index:1;font-weight:900}.tt-sub{font-size:11px;font-weight:800}.tt-fac{font-size:9px;color:var(--muted);margin-top:5px}
+.notice{padding:12px 0;border-bottom:1px solid var(--line)}.notice:last-child{border:0}.notice-cat{font-size:9px;color:#42c7d7;font-weight:900;text-transform:uppercase}.notice-title{font-weight:850;margin:4px 0}.notice-text{font-size:11px;color:var(--muted);line-height:1.5}
+.empty{text-align:center;color:var(--muted);padding:26px 10px}.loading{min-height:65vh;display:grid;place-items:center;text-align:center}.error{max-width:560px;margin:60px auto;background:#2a1820;border:1px solid #66333d;border-radius:20px;padding:20px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,680px);display:grid;grid-template-columns:repeat(5,1fr);background:rgba(7,26,25,.94);backdrop-filter:blur(16px);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;overflow:hidden;z-index:20}.bottom button{border:0;background:transparent;color:#90a9a4;padding:11px 4px 13px;font-size:10px}.bottom button.active{color:white;background:rgba(255,255,255,.055)}.bottom b{font-size:17px;display:block;margin-bottom:2px}
+@media(max-width:850px){.s5,.s7,.s12{grid-column:span 12}.app{padding:14px 12px 92px}.top{margin-bottom:15px}}
+@media(min-width:851px){.bottom{left:auto;right:18px;transform:none;width:440px}.hero{min-height:190px}.app{padding-bottom:90px}}
+
+.choice{border:1px solid var(--line);background:linear-gradient(180deg,#102d2b,#0a2422);border-radius:15px;padding:13px;text-align:left;color:white;width:100%;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.choice:hover{background:#153936}.choice .nm{font-weight:850}.choice .rg{font-size:10px;color:var(--muted)}
+
+.cs-create{background:linear-gradient(145deg,#153934,#0d2926)}.cs-create-title{font-weight:900;margin-bottom:11px}
+.cs-action-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.cs-action-grid button{border:1px solid var(--line);background:#173a36;color:white;border-radius:14px;padding:10px 5px;font-size:18px}.cs-action-grid button span{display:block;font-size:9px;color:#b6c9c5;margin-top:5px;font-weight:750}
+.cs-feed{display:grid;gap:12px}.cs-post{border:1px solid var(--line);background:linear-gradient(180deg,#102d2b,#0b2523);border-radius:18px;padding:15px}.cs-post.admin{border:2px solid #e2b950;background:linear-gradient(145deg,#322a1c,#18312c);box-shadow:0 13px 34px rgba(224,171,61,.12)}
+.cs-topline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cs-admin-badge{display:inline-flex;padding:5px 8px;border-radius:999px;background:#f1c65c;color:#241d10;font-size:9px;font-weight:950}.cs-student-badge{display:inline-flex;padding:5px 8px;border-radius:999px;background:#183e3a;color:#b8d1cc;font-size:9px;font-weight:850}.cs-kind{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#86a5a0;font-weight:850}.cs-post-title{font-size:17px;font-weight:900;margin-top:9px}.cs-post-text{font-size:12px;line-height:1.55;color:#bfd0cd;margin-top:6px;white-space:pre-wrap}.cs-time{font-size:9px;color:#75938d;margin-top:8px}
+.cs-poll{display:grid;gap:7px;margin-top:12px}.cs-poll button{position:relative;overflow:hidden;border:1px solid var(--line);background:#153632;color:white;border-radius:12px;padding:10px 11px;text-align:left}.cs-poll button.voted{border-color:#5fcbb5}.cs-poll-fill{position:absolute;inset:0 auto 0 0;background:rgba(75,201,177,.14);pointer-events:none}.cs-poll-content{position:relative;display:flex;justify-content:space-between;gap:8px;font-size:11px}.cs-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.cs-actions button{border:1px solid var(--line);background:#153632;color:#d9e7e4;border-radius:10px;padding:8px 10px;font-size:10px}.cs-resource{display:inline-block;margin-top:10px;color:#73d5de;font-size:11px;word-break:break-all}
+.cs-modal{position:fixed;inset:0;background:rgba(0,0,0,.64);z-index:80;display:flex;align-items:flex-end;justify-content:center}.cs-modal.hidden{display:none}.cs-sheet{width:min(650px,100%);max-height:90vh;overflow:auto;background:#0d2927;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px}.cs-sheet-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.cs-sheet-head button{border:0;background:#173936;color:white;width:34px;height:34px;border-radius:50%}.cs-label{display:block;font-size:10px;color:#95aaa6;margin:12px 0 5px}.cs-input{width:100%;border:1px solid var(--line);background:#102f2c;color:white;border-radius:12px;padding:11px;font:inherit}.cs-anon{display:flex;align-items:center;gap:7px;font-size:11px;color:#aac0bb;margin:12px 0}.cs-anon input{width:auto}.cs-submit{width:100%;border:0;background:linear-gradient(135deg,#4fb8ae,#7762dd);color:white;border-radius:13px;padding:12px;font-weight:900}.cs-answer-list{display:grid;gap:8px;margin:12px 0;max-height:45vh;overflow:auto}.cs-answer{border:1px solid var(--line);border-radius:12px;padding:10px;background:#12332f}.cs-answer.admin{border-color:#d3ac4c;background:#302a1d}.cs-answer-author{font-size:9px;font-weight:900;color:#91aaa5}.cs-answer.admin .cs-answer-author{color:#ffd56c}.cs-answer-text{font-size:12px;margin-top:4px;line-height:1.45}
+@media(max-width:520px){.cs-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+.cs-home-link{border:0;background:transparent;color:#6dd7d3;font-size:11px;font-weight:850;padding:0}
+.cs-home-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cs-home-post{border:1px solid var(--line);background:linear-gradient(145deg,#102e2b,#0b2523);border-radius:17px;padding:14px;min-width:0}
+.cs-home-post.admin{border:2px solid #e2b950;background:linear-gradient(145deg,#322a1c,#18312c);box-shadow:0 12px 28px rgba(224,171,61,.10)}
+.cs-home-title{font-size:14px;font-weight:900;margin-top:7px}
+.cs-home-text{font-size:11px;color:#b9ceca;line-height:1.45;margin-top:5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cs-home-poll{display:grid;gap:6px;margin-top:9px}.cs-home-poll button{position:relative;overflow:hidden;border:1px solid var(--line);background:#153632;color:white;border-radius:10px;padding:8px 9px;text-align:left}.cs-home-poll button.voted{border-color:#62d2b9}.cs-home-poll .fill{position:absolute;inset:0 auto 0 0;background:rgba(75,201,177,.14)}.cs-home-poll .content{position:relative;display:flex;justify-content:space-between;gap:6px;font-size:10px}
+.cs-home-action{margin-top:9px;border:1px solid var(--line);background:#153632;color:#dce9e6;border-radius:9px;padding:7px 9px;font-size:10px}
+.cs-home-meta{font-size:9px;color:#799690;margin-top:8px}
+@media(max-width:720px){.cs-home-feed{grid-template-columns:1fr}}
+
+
+.cs-help{font-size:11px;color:#9db4af;line-height:1.45;margin-top:3px}
+.cs-field-note{font-size:10px;color:#8ca6a0;line-height:1.45;margin-top:6px;padding:8px 9px;border:1px dashed var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
+.cs-vote-privacy{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:10px;color:#9db4af}
+.cs-vote-privacy input{width:auto}
+.cs-voter-list{margin-top:5px;font-size:9px;color:#9eb5b0;line-height:1.45}
+.cs-voter-list b{color:#dce8e5}
+.cs-answer-private-note{padding:9px 10px;border-radius:10px;border:1px solid #b59446;background:#312a1d;color:#f0d58a;font-size:10px;margin-top:8px}
+
+</style>
+</head>
+<body>
+<div id="chooser" class="loading" style="display:none">
+ <div style="width:min(560px,92vw)">
+  <div style="font-size:40px">🎓</div>
+  <h2 style="margin:8px 0">Choose your name</h2>
+  <div class="small" style="margin-bottom:14px">Select your name, then enter the 4-digit code provided by Joyal.</div>
+  <input id="studentSearchBox" placeholder="Search your name…" style="width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#102d2b;color:white;margin-bottom:10px">
+  <div id="studentChoiceList" style="display:grid;gap:8px;max-height:55vh;overflow:auto"></div>
+ </div>
+</div>
+
+<div id="studentCodeModal" class="cs-modal hidden">
+ <div class="cs-sheet">
+  <div class="cs-sheet-head">
+   <div><b>Verify student</b><div id="studentCodeName" class="small"></div></div>
+   <button onclick="closeStudentCodeModal()">✕</button>
+  </div>
+  <input id="pendingPortalId" type="hidden">
+  <label class="cs-label">4-digit access code</label>
+  <input id="studentAccessCodeInput" class="cs-input" inputmode="numeric" maxlength="8" placeholder="Enter code">
+  <div id="studentCodeError" class="error" style="display:none;margin-top:9px"></div>
+  <button class="cs-submit" style="margin-top:12px" onclick="verifyStudentCode()">Continue</button>
+ </div>
+</div>
+
+<div id="loading" class="loading"><div><div style="font-size:38px">🎓</div><b>Loading your ClassPilot…</b><div class="small">Read-only student view</div></div></div>
+<div id="error" class="error" style="display:none"></div>
+<div id="app" class="app" style="display:none">
+<header class="top"><div class="hello"><div id="avatar" class="avatar">S</div><div><div class="eyebrow">Hello 👋 <span style="opacity:.55">· v10.8</span></div><div id="studentName" class="name">Student</div><div id="regNo" class="small"></div></div></div><div style="display:flex;gap:8px;align-items:center"><button onclick="changeStudent()" style="border:1px solid var(--line);background:rgba(255,255,255,.04);color:white;border-radius:999px;padding:8px 10px;font-size:10px">Change student</button><div class="live" id="portalStatus">● View only</div></div></header>
+<section id="home" class="page active">
+ <div id="nextClassHero" class="hero"></div>
+ <div class="section-head"><h2>Today's Classes</h2><span id="todayLabel"></span></div><div id="todayPeriods" class="period-row"></div>
+ <div class="grid">
+  <div class="s7"><div class="section-head"><h2>Important Deadlines</h2><span>Upcoming</span></div><div id="homeDeadlines" class="card"></div></div>
+  <div class="s12">
+   <div class="section-head">
+    <h2>ClassSpace Live</h2>
+    <span><button onclick="nav('classSpacePage')" class="cs-home-link">View all</button></span>
+   </div>
+   <div id="homeClassSpaceFeed" class="cs-home-feed">
+    <div class="card"><div class="small">Loading ClassSpace…</div></div>
+   </div>
+  </div>
+    <div class="s5"><div class="section-head"><h2>Attendance</h2><span>Subject-wise</span></div><div id="homeAttendance" class="grid"></div></div>
+<div class="s12"><div class="section-head"><h2>Important Updates</h2><span>From class admin</span></div><div id="homeNotices" class="card"></div></div>
+ </div>
+</section>
+<section id="timetablePage" class="page"><div class="section-head"><h2>Weekly Timetable</h2><span>Swipe horizontally on mobile</span></div><div id="fullTimetable" class="tt-wrap"></div></section>
+<section id="attendancePage" class="page"><div class="section-head"><h2>My Attendance</h2><span>Current published record</span></div><div id="attendanceGrid" class="grid"></div></section>
+
+<section id="classSpacePage" class="page">
+ <div class="section-head"><h2>ClassSpace</h2><span>Poll · Ask · Share · RSVP</span></div>
+ <div class="cs-create card">
+   <div class="cs-create-title">Start something with the class</div>
+   <div class="cs-action-grid">
+     <button onclick="openCsComposer('poll')">📊<span>Poll</span></button>
+     <button onclick="openCsComposer('question')">❓<span>Ask Class</span></button>
+     <button onclick="openCsComposer('suggestion')">💡<span>Suggestion</span></button>
+     <button onclick="openCsComposer('resource')">📚<span>Study Share</span></button>
+     <button onclick="openCsComposer('rsvp')">📅<span>RSVP</span></button>
+   </div>
+ </div>
+ <div class="section-head"><h2>Class Feed</h2><span id="csFeedStatus">Updating…</span></div>
+ <div id="classSpaceFeed" class="cs-feed"></div>
+</section>
+<section id="deadlinePage" class="page"><div class="section-head"><h2>Deadlines & Updates</h2><span>Read only</span></div><div class="grid"><div class="s7"><div id="allDeadlines" class="card"></div></div><div class="s5"><div id="allNotices" class="card"></div></div></div></section>
+</div>
+<nav id="bottom" class="bottom" style="display:none">
+ <button class="active" data-page="home"><b>⌂</b>Home</button>
+ <button data-page="timetablePage"><b>▦</b>Timetable</button>
+ <button data-page="attendancePage"><b>◔</b>Attendance</button>
+ <button data-page="classSpacePage"><b>✦</b>ClassSpace</button>
+ <button data-page="deadlinePage"><b>◷</b>Deadlines</button>
+</nav>
+
+<div id="csComposer" class="cs-modal hidden">
+ <div class="cs-sheet">
+  <div class="cs-sheet-head">
+   <div>
+    <b id="csComposerTitle">Create</b>
+    <div id="csComposerHelp" class="cs-help">Choose what you want to share with the class.</div>
+   </div>
+   <button onclick="closeCsComposer()">✕</button>
+  </div>
+
+  <input id="csType" type="hidden">
+
+  <label id="csTitleLabel" class="cs-label">Title</label>
+  <input id="csTitle" class="cs-input" placeholder="Title">
+
+  <label id="csTextLabel" class="cs-label">Message</label>
+  <textarea id="csText" class="cs-input" rows="4" placeholder="Write something…"></textarea>
+
+  <div id="csOptionsWrap" class="hidden">
+   <label id="csOptionsLabel" class="cs-label">Options — one per line</label>
+   <textarea id="csOptions" class="cs-input" rows="4" placeholder="Option 1&#10;Option 2"></textarea>
+   <div class="cs-field-note">
+    Students can see exact vote counts and voter names. Each voter can hide their name from classmates; Joyal can still see the real voter.
+   </div>
+  </div>
+
+  <div id="csResourceWrap" class="hidden">
+   <label class="cs-label">Resource link</label>
+   <input id="csResourceUrl" class="cs-input" type="url" placeholder="https://…">
+   <div class="cs-field-note">Share a useful note, document, video, form or study link.</div>
+  </div>
+
+  <label id="csAnonWrap" class="cs-anon">
+   <input id="csAnonymous" type="checkbox"> Hide my name from classmates
+  </label>
+
+  <button id="csSubmitBtn" class="cs-submit" onclick="submitClassSpacePost()">Post to ClassSpace</button>
+ </div>
+</div>
+
+
+<div id="csAnswersModal" class="cs-modal hidden">
+ <div class="cs-sheet">
+  <div class="cs-sheet-head">
+   <div>
+    <b>Answers</b>
+    <div id="csAnswerQuestion" class="small"></div>
+   </div>
+   <button onclick="closeAnswers()">✕</button>
+  </div>
+
+  <div id="csAnswersList" class="cs-answer-list"></div>
+
+  <label class="cs-label">Your answer</label>
+  <textarea id="csAnswerText" class="cs-input" rows="3" placeholder="Write your reply…"></textarea>
+
+  <label class="cs-label">Who should see this reply?</label>
+  <select id="csAnswerAudience" class="cs-input">
+   <option value="class">Whole class</option>
+   <option value="admin">Joyal · Admin only</option>
+  </select>
+
+  <div class="cs-field-note">
+   “Admin only” replies are visible to Joyal but are not shown to other students.
+  </div>
+
+  <input id="csAnswerPostId" type="hidden">
+  <button class="cs-submit" style="margin-top:12px" onclick="submitAnswer()">Send answer</button>
+ </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyCHBFU95np7wPnoVBLjzUE8JsAWZ8VaLIY",authDomain:"classr-29e5f.firebaseapp.com",projectId:"classr-29e5f",storageBucket:"classr-29e5f.firebasestorage.app",messagingSenderId:"26564574282",appId:"1:26564574282:web:6b9fd998fa75e0f19afab3",measurementId:"G-VNWV2LPRRQ"};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+let data=null;let classSpaceUser=null;
+
+// Explicit DOM bindings for ClassSpace.
+// Do not rely on browser-specific "id becomes global variable" behavior.
+const csComposer=document.getElementById("csComposer");
+const csComposerTitle=document.getElementById("csComposerTitle");
+const csComposerHelp=document.getElementById("csComposerHelp");
+const csType=document.getElementById("csType");
+const csTitleLabel=document.getElementById("csTitleLabel");
+const csTitle=document.getElementById("csTitle");
+const csTextLabel=document.getElementById("csTextLabel");
+const csText=document.getElementById("csText");
+const csOptionsWrap=document.getElementById("csOptionsWrap");
+const csOptions=document.getElementById("csOptions");
+const csResourceWrap=document.getElementById("csResourceWrap");
+const csResourceUrl=document.getElementById("csResourceUrl");
+const csAnonWrap=document.getElementById("csAnonWrap");
+const csAnonymous=document.getElementById("csAnonymous");
+const csSubmitBtn=document.getElementById("csSubmitBtn");
+
+const csAnswersModal=document.getElementById("csAnswersModal");
+const csAnswerQuestion=document.getElementById("csAnswerQuestion");
+const csAnswersList=document.getElementById("csAnswersList");
+const csAnswerText=document.getElementById("csAnswerText");
+const csAnswerAudience=document.getElementById("csAnswerAudience");
+const csAnswerPostId=document.getElementById("csAnswerPostId");
+
+const chooser=document.getElementById("chooser");
+const studentSearchBox=document.getElementById("studentSearchBox");
+const studentChoiceList=document.getElementById("studentChoiceList");
+const studentCodeModal=document.getElementById("studentCodeModal");
+const studentCodeName=document.getElementById("studentCodeName");
+const studentAccessCodeInput=document.getElementById("studentAccessCodeInput");
+const studentCodeError=document.getElementById("studentCodeError");
+const pendingPortalId=document.getElementById("pendingPortalId");
+
+const loading=document.getElementById("loading");
+const error=document.getElementById("error");
+const app=document.getElementById("app");
+const bottom=document.getElementById("bottom");
+const portalStatus=document.getElementById("portalStatus");
+const classSpaceFeed=document.getElementById("classSpaceFeed");
+const csFeedStatus=document.getElementById("csFeedStatus");
+const homeClassSpaceFeed=document.getElementById("homeClassSpaceFeed");
+let selectedPortalId=localStorage.getItem("classpilot_student_portal_id")||"";let directory=[];
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function dayName(){return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()]}
+function currentHour(){const m=new Date().getHours()*60+new Date().getMinutes(),r=[[540,600],[600,660],[670,730],[730,790],[840,900],[900,960]];for(let i=0;i<r.length;i++)if(m>=r[i][0]&&m<r[i][1])return i;return -1}
+function showError(msg){loading.style.display="none";error.style.display="block";error.innerHTML=`<b>Student portal unavailable</b><div class="small" style="margin-top:7px">${esc(msg)}</div>`}
+function nav(id){if(id==="classSpacePage")loadClassSpace();if(id==="home")loadHomeClassSpace();document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===id));scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll("[data-page]").forEach(x=>x.onclick=()=>nav(x.dataset.page));
+function render(){studentName.textContent=data.studentName||"Student";avatar.textContent=(data.studentName||"S").trim().charAt(0).toUpperCase();regNo.textContent=data.regNo?`Reg No. ${data.regNo}`:"";todayLabel.textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});renderToday();renderDeadlines();renderAttendance();renderNotices();renderTimetable();loading.style.display="none";app.style.display="block";bottom.style.display="grid";loadHomeClassSpace()}
+function renderToday(){const day=dayName(),today=data.timetable?.[day]||[],now=currentHour(),times=data.periodTiming||[];let pick=now>=0?now:0,c=today[pick]||{};nextClassHero.innerHTML=`<div class="next-label">${now>=0?"Now in class":"Today's schedule"}</div><div class="next-subject">${esc(c.subject||"No class scheduled")}</div><div class="next-faculty">${esc(c.faculty||"")}</div><div class="next-time">Hour ${pick+1} · ${esc(times[pick]||"")}</div>`;todayPeriods.innerHTML=[0,1,2,3,4,5].map(i=>`<div class="period ${i===now?"now":""}"><div class="h">H${i+1}</div><div style="font-size:10px;font-weight:800;margin-top:5px">${esc(today[i]?.subject||"—")}</div><div class="t">${esc(times[i]||"")}</div></div>`).join("")}
+function deadlineHtml(list,limit=99){const arr=list.slice(0,limit);if(!arr.length)return '<div class="empty">No upcoming deadlines 🎉</div>';return arr.map(x=>{let d=x.date?new Date(x.date+"T00:00:00"):null,day=d?String(d.getDate()).padStart(2,"0"):"—",mon=d?d.toLocaleDateString("en-IN",{month:"short"}):"";return `<div class="deadline"><div class="datebox">${day}<span>${mon}</span></div><div><b>${esc(x.title)}</b><div class="small">${esc(x.subject||"General")}${x.description?` · ${esc(x.description)}`:""}</div></div><span class="priority ${esc(x.priority)}">${esc(x.priority)}</span></div>`}).join("")}
+function renderDeadlines(){homeDeadlines.innerHTML=deadlineHtml(data.deadlines||[],4);allDeadlines.innerHTML=deadlineHtml(data.deadlines||[])}
+function attendanceCard(x){const pct=Number(x.percentage||0);return `<div class="att-card s12"><div class="att-top"><div><div class="card-title">${esc(x.subject)}</div><div class="small">${x.present}/${x.total} hours present</div></div><div class="pct">${pct.toFixed(1)}%</div></div><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><div class="stats"><span class="stat">Present <b>${x.present}</b></span><span class="stat">Absent <b>${x.absent}</b></span><span class="stat">Late <b>${x.late}</b></span><span class="stat">Excused <b>${x.excused}</b></span></div></div>`}
+function renderAttendance(){const a=data.attendance||[];homeAttendance.innerHTML=a.slice(0,3).map(attendanceCard).join("")||'<div class="empty s12">No attendance published yet.</div>';attendanceGrid.innerHTML=a.map(attendanceCard).join("")||'<div class="empty s12">No attendance published yet.</div>'}
+function noticesHtml(list){return list.length?list.map(n=>`<div class="notice"><div class="notice-cat">${esc(n.category)}</div><div class="notice-title">${esc(n.title)}</div><div class="notice-text">${esc(n.text)}</div></div>`).join(""):'<div class="empty">No important updates.</div>'}
+function renderNotices(){homeNotices.innerHTML=noticesHtml((data.notices||[]).slice(0,4));allNotices.innerHTML=noticesHtml(data.notices||[])}
+function renderTimetable(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],times=data.periodTiming||[],tt=data.timetable||{};let h='<div class="week"><div class="tt-cell tt-head tt-day">Day</div>'+times.map((t,i)=>`<div class="tt-cell tt-head">H${i+1}<div class="small">${esc(t)}</div></div>`).join("");days.forEach(day=>{h+=`<div class="tt-cell tt-day">${day}</div>`;for(let i=0;i<6;i++){const c=tt[day]?.[i]||{};h+=`<div class="tt-cell"><div class="tt-sub">${esc(c.subject||"—")}</div><div class="tt-fac">${esc(c.faculty||"")}</div></div>`}});h+='</div>';fullTimetable.innerHTML=h}
+
+let refreshTimer=null;
+async function fetchDirectory(){
+ const snap=await db.collection("studentPortalDirectory").doc("current").get();
+ if(!snap.exists)throw new Error("The student portal has not been published yet.");
+ directory=(snap.data().students||[]).slice().sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:"base"}));
+}
+function renderChoices(filter=""){
+ const q=filter.trim().toLowerCase();
+ const list=directory.filter(x=>x.name.toLowerCase().includes(q));
+ studentChoiceList.innerHTML=list.map(x=>`<button class="choice" onclick="chooseStudent('${x.id}')"><span><span class="nm">${esc(x.name)}</span>${x.regNo?`<span class="rg"><br>Reg No. ${esc(x.regNo)}</span>`:""}</span><span>›</span></button>`).join("")||'<div class="small">No matching student.</div>';
+}
+function chooseStudent(id){
+ const entry=directory.find(x=>x.id===id);
+ pendingPortalId.value=id;
+ studentCodeName.textContent=entry?.name||"Student";
+ studentAccessCodeInput.value="";
+ studentCodeError.style.display="none";
+ studentCodeModal.classList.remove("hidden");
+ setTimeout(()=>studentAccessCodeInput.focus(),50);
+}
+function closeStudentCodeModal(){
+ studentCodeModal.classList.add("hidden");
+}
+async function verifyStudentCode(){
+ const id=pendingPortalId.value;
+ const code=studentAccessCodeInput.value.trim();
+ if(!id||!code)return;
+ if(!await ensureClassSpaceAuth())return;
+
+ studentCodeError.style.display="none";
+
+ try{
+   const ref=db.collection("studentSessions").doc(auth.currentUser.uid);
+   await ref.set({
+     ownerUid:auth.currentUser.uid,
+     portalId:id,
+     accessCode:code,
+     verifiedAtMs:Date.now()
+   });
+
+   selectedPortalId=id;
+   localStorage.setItem("classpilot_student_portal_id",id);
+   localStorage.setItem("classpilot_student_verified","1");
+   closeStudentCodeModal();
+   chooser.style.display="none";
+   loading.style.display="grid";
+   await loadPortalData(true);
+ }catch(e){
+   console.warn("Student verification failed",e);
+   studentCodeError.style.display="block";
+   studentCodeError.textContent=e.code==="permission-denied"
+     ?"Incorrect access code. Ask Joyal for your current code."
+     : e.message;
+ }
+}
+function changeStudent(){
+ localStorage.removeItem("classpilot_student_portal_id");
+ localStorage.removeItem("classpilot_student_verified");
+ selectedPortalId="";
+ app.style.display="none";bottom.style.display="none";error.style.display="none";
+ chooser.style.display="grid";
+ renderChoices();
+}
+async function loadPortalData(showErrors=true){
+ if(!selectedPortalId)return false;
+ try{
+   const snap=await db.collection("studentPortals").doc(selectedPortalId).get();
+   if(!snap.exists){
+     localStorage.removeItem("classpilot_student_portal_id");
+     selectedPortalId="";
+     if(showErrors){
+       loading.style.display="none";
+       chooser.style.display="grid";
+       renderChoices();
+     }
+     return false;
+   }
+   const updated=snap.data();
+   const changed=!data || JSON.stringify(updated)!==JSON.stringify(data);
+   data=updated;
+   if(document.getElementById("portalStatus"))portalStatus.textContent="● Updated "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+   if(changed)render();
+   return true;
+ }catch(e){
+   console.warn("Student portal refresh failed:",e);
+   if(showErrors && !data)showError(e.message);
+   return false;
+ }
+}
+
+let classSpacePosts=[],classSpaceTimer=null;
+function selectedStudentName(){return data?.studentName||""}
+async function ensureClassSpaceAuth(){
+ if(auth.currentUser){classSpaceUser=auth.currentUser;return true}
+ try{
+   const c=await auth.signInAnonymously();
+   classSpaceUser=c.user;
+   return true;
+ }catch(e){
+   console.error("Firebase anonymous auth failed",e);
+   let msg="Class interaction could not sign in.";
+   if(e.code==="auth/operation-not-allowed"){
+     msg="Anonymous sign-in is disabled in Firebase. Enable Authentication → Sign-in method → Anonymous.";
+   }else if(e.code==="auth/unauthorized-domain"){
+     msg=`This domain is not authorized in Firebase Authentication. Add ${location.hostname} under Authentication → Settings → Authorized domains.`;
+   }else if(e.code==="auth/network-request-failed"){
+     msg="Firebase Authentication could not reach the network. Check internet connection, browser privacy settings, or extensions.";
+   }else if(e.code){
+     msg=`Firebase Authentication error: ${e.code}`;
+   }
+   if(document.getElementById("csFeedStatus"))csFeedStatus.textContent=msg;
+   alert(msg);
+   return false;
+ }
+}
+function openCsComposer(type){
+ if(!csType || !csComposer){
+   console.error("ClassSpace composer elements are missing from student.html");
+   alert("ClassSpace composer could not open. Please refresh the page.");
+   return;
+ }
+ csType.value=type;csTitle.value="";csText.value="";csOptions.value="";csResourceUrl.value="";csAnonymous.checked=false;
+
+ const cfg={
+   poll:{
+     title:"Create a Poll",
+     help:"Ask the class to choose between options. Everyone can see exact counts and voter names unless an individual voter chooses to be anonymous. Joyal can always see who voted.",
+     titleLabel:"Poll question",
+     titlePlaceholder:"Which day is best for the seminar?",
+     textLabel:"Context / instruction (optional)",
+     textPlaceholder:"Add any detail students should know before voting.",
+     submit:"Publish Poll"
+   },
+   question:{
+     title:"Ask the Class",
+     help:"Post a question for classmates. Each person replying can choose whether their answer is visible to the whole class or only to Joyal.",
+     titleLabel:"Your question",
+     titlePlaceholder:"Does anyone have the HSP Unit 3 notes?",
+     textLabel:"More details (optional)",
+     textPlaceholder:"Add context so classmates know exactly what you need.",
+     submit:"Post Question"
+   },
+   suggestion:{
+     title:"Share a Suggestion",
+     help:"Suggest an idea, concern or improvement. You may hide your name from classmates; Joyal will still be able to identify the sender for moderation.",
+     titleLabel:"Suggestion title",
+     titlePlaceholder:"Suggestion for our next class activity",
+     textLabel:"Your suggestion",
+     textPlaceholder:"Explain your idea clearly.",
+     submit:"Share Suggestion"
+   },
+   resource:{
+     title:"Share Study Resource",
+     help:"Share a useful learning resource with everyone in the class.",
+     titleLabel:"Resource title",
+     titlePlaceholder:"HSP Unit 3 notes",
+     textLabel:"Why is this useful?",
+     textPlaceholder:"Briefly explain what the resource contains.",
+     submit:"Share Resource"
+   },
+   rsvp:{
+     title:"Create an RSVP",
+     help:"Ask the class to confirm participation. Everyone can see exact response counts and names unless a voter chooses to hide their name; Joyal still sees the identity.",
+     titleLabel:"Event / activity",
+     titlePlaceholder:"Workshop attendance confirmation",
+     textLabel:"Details / instruction",
+     textPlaceholder:"Add date, time or anything participants should know.",
+     submit:"Publish RSVP"
+   }
+ }[type];
+
+ csComposerTitle.textContent=cfg.title;
+ csComposerHelp.textContent=cfg.help;
+ csTitleLabel.textContent=cfg.titleLabel;
+ csTitle.placeholder=cfg.titlePlaceholder;
+ csTextLabel.textContent=cfg.textLabel;
+ csText.placeholder=cfg.textPlaceholder;
+ csSubmitBtn.textContent=cfg.submit;
+
+ csOptionsWrap.classList.toggle("hidden",!(type==="poll"||type==="rsvp"));
+ csResourceWrap.classList.toggle("hidden",type!=="resource");
+ csAnonWrap.classList.toggle("hidden",type!=="suggestion");
+ if(type==="rsvp")csOptions.value="Going\nMaybe\nNot Going";
+ csComposer.classList.remove("hidden");
+}
+function closeCsComposer(){csComposer.classList.add("hidden")}
+async function submitClassSpacePost(){
+ if(!await ensureClassSpaceAuth())return alert("Class interaction is not enabled yet.");
+ const type=csType.value,title=csTitle.value.trim(),text=csText.value.trim();
+ if(!title&&!text)return alert("Write something first.");
+ let options=[];
+ if(type==="poll"||type==="rsvp"){
+   options=csOptions.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+   if(options.length<2)return alert("Add at least two options.");
+ }
+ const anon=type==="suggestion"&&csAnonymous.checked;
+ try{
+   await db.collection("classSpace").add({
+     ownerUid:auth.currentUser.uid,
+     authorName:anon?"Anonymous":selectedStudentName(),
+     isAdmin:false,
+     type,title,text,options,
+     resourceUrl:type==="resource"?csResourceUrl.value.trim():"",
+     status:"open",
+     createdAtMs:Date.now()
+   });
+  closeCsComposer();await loadClassSpace();await loadHomeClassSpace();
+ }catch(e){alert(e.message)}
+}
+
+async function loadHomeClassSpace(){
+ const box=document.getElementById("homeClassSpaceFeed");
+ if(!box)return;
+ if(!await ensureClassSpaceAuth()){
+   box.innerHTML='<div class="card"><div class="small">ClassSpace interactions are unavailable.</div></div>';
+   return;
+ }
+ try{
+   const snap=await db.collection("classSpace").orderBy("createdAtMs","desc").limit(6).get();
+   const posts=snap.docs.map(d=>({id:d.id,...d.data()}));
+   const enriched=[];
+   for(const p of posts){
+     let votes=[],myVote=null;
+     if(p.type==="poll"||p.type==="rsvp"){
+       const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
+       votes=vs.docs.map(d=>({id:d.id,...d.data()}));
+       myVote=votes.find(v=>v.id===selectedPortalId)||null;
+     }
+     enriched.push({...p,votes,myVote});
+   }
+   renderHomeClassSpace(enriched);
+ }catch(e){
+   console.warn("Home ClassSpace load failed",e);
+   box.innerHTML='<div class="card"><div class="small">Could not load ClassSpace right now.</div></div>';
+ }
+}
+function renderHomeClassSpace(posts){
+ const box=document.getElementById("homeClassSpaceFeed");
+ if(!box)return;
+ if(!posts.length){
+   box.innerHTML='<div class="card"><div class="empty">No ClassSpace activity yet.</div></div>';
+   return;
+ }
+ // Admin posts naturally remain prominent, but ordering stays chronological.
+ box.innerHTML=posts.map(p=>{
+   const admin=!!p.isAdmin,opts=(p.options||[]),counts=opts.map(()=>0);
+   (p.votes||[]).forEach(v=>{const i=Number(v.optionIndex);if(counts[i]!=null)counts[i]++});
+   const total=(p.votes||[]).length;
+   const poll=opts.length?`<div class="cs-home-poll">${opts.map((o,i)=>{
+     const pct=total?Math.round((counts[i]/total)*100):0;
+     const voted=p.myVote&&Number(p.myVote.optionIndex)===i;
+     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||v.authorName||"Student"));
+     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="fill" style="width:${pct}%"></span><span class="content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Voted:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
+   }).join("")}<label class="cs-vote-privacy"><input type="checkbox" id="anonVote_${p.id}" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates when I vote</label></div>`:"";
+   let action="";
+   if(p.type==="question")action=`<button class="cs-home-action" onclick="openAnswers('${p.id}')">💬 View / Answer</button>`;
+   else if(p.type==="resource"&&p.resourceUrl)action=`<button class="cs-home-action" onclick="window.open('${esc(p.resourceUrl)}','_blank','noopener')">📚 Open resource</button>`;
+   return `<article class="cs-home-post ${admin?"admin":""}">
+     <div class="cs-topline">
+       ${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}
+       <span class="cs-kind">${esc(p.type||"post")}</span>
+     </div>
+     ${p.title?`<div class="cs-home-title">${esc(p.title)}</div>`:""}
+     ${p.text?`<div class="cs-home-text">${esc(p.text)}</div>`:""}
+     ${poll}${action}
+     <div class="cs-home-meta">${new Date(p.createdAtMs||Date.now()).toLocaleString()}</div>
+   </article>`;
+ }).join("");
+}
+async function loadClassSpace(){
+ if(!document.getElementById("classSpaceFeed"))return;
+ if(!await ensureClassSpaceAuth())return;
+ csFeedStatus.textContent="Refreshing…";
+ try{
+   const snap=await db.collection("classSpace").orderBy("createdAtMs","desc").limit(60).get();
+   classSpacePosts=snap.docs.map(d=>({id:d.id,...d.data()}));
+   const enriched=[];
+   for(const p of classSpacePosts){
+     let votes=[],myVote=null;
+     if(p.type==="poll"||p.type==="rsvp"){
+       const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
+       votes=vs.docs.map(d=>({id:d.id,...d.data()}));
+       myVote=votes.find(v=>v.id===selectedPortalId)||null;
+     }
+     enriched.push({...p,votes,myVote});
+   }
+   renderClassSpace(enriched);csFeedStatus.textContent=`Updated ${new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`;
+ }catch(e){console.warn(e);csFeedStatus.textContent="Could not refresh"}
+}
+function renderClassSpace(posts){
+ classSpaceFeed.innerHTML=posts.length?posts.map(p=>{
+   const admin=!!p.isAdmin,opts=(p.options||[]),counts=opts.map(()=>0);
+   (p.votes||[]).forEach(v=>{const i=Number(v.optionIndex);if(counts[i]!=null)counts[i]++});
+   const total=(p.votes||[]).length;
+   const poll=opts.length?`<div class="cs-poll">${opts.map((o,i)=>{
+     const pct=total?Math.round((counts[i]/total)*100):0,voted=p.myVote&&Number(p.myVote.optionIndex)===i;
+     const voters=(p.votes||[]).filter(v=>Number(v.optionIndex)===i).map(v=>v.anonymous?"Anonymous":(v.displayName||v.authorName||"Student"));
+     return `<button class="${voted?"voted":""}" onclick="voteClassSpace('${p.id}',${i})"><span class="cs-poll-fill" style="width:${pct}%"></span><span class="cs-poll-content"><span>${esc(o)}</span><span>${counts[i]} vote${counts[i]===1?"":"s"} · ${pct}%</span></span></button><div class="cs-voter-list">${voters.length?`<b>Voted:</b> ${voters.map(esc).join(", ")}`:"No votes yet"}</div>`;
+   }).join("")}<label class="cs-vote-privacy"><input type="checkbox" id="anonVote_${p.id}" ${p.myVote?.anonymous?"checked":""}> Hide my name from classmates when I vote</label></div>`:"";
+   return `<article class="cs-post ${admin?"admin":""}">
+     <div class="cs-topline">${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="cs-student-badge">${esc(p.authorName||"Student")}</span>`}<span class="cs-kind">${esc(p.type||"post")}</span></div>
+     ${p.title?`<div class="cs-post-title">${esc(p.title)}</div>`:""}
+     ${p.text?`<div class="cs-post-text">${esc(p.text)}</div>`:""}
+     ${p.resourceUrl?`<a class="cs-resource" href="${esc(p.resourceUrl)}" target="_blank" rel="noopener">Open resource ↗</a>`:""}
+     ${poll}
+     <div class="cs-actions">${p.type==="question"?`<button onclick="openAnswers('${p.id}')">💬 Answers</button>`:""}${(p.type==="poll"||p.type==="rsvp")?`<button disabled>${total} response${total===1?"":"s"}</button>`:""}</div>
+     <div class="cs-time">${new Date(p.createdAtMs||Date.now()).toLocaleString()}</div>
+   </article>`;
+ }).join(""):'<div class="empty">Nothing in ClassSpace yet. Start the first conversation ✨</div>';
+}
+async function voteClassSpace(postId,optionIndex){
+ if(!await ensureClassSpaceAuth())return;
+ if(!selectedPortalId || !selectedStudentName())return alert("Choose your student name first.");
+ try{
+   const anonymous=!!document.getElementById(`anonVote_${postId}`)?.checked;
+   const actualName=selectedStudentName()||"Student";
+   const voterKey=selectedPortalId;
+
+   await db.collection("classSpace").doc(postId).collection("votes").doc(voterKey).set({
+     ownerUid:auth.currentUser.uid,
+     portalId:voterKey,
+     displayName:anonymous?"Anonymous":actualName,
+     anonymous,
+     optionIndex:Number(optionIndex),
+     updatedAtMs:Date.now()
+   });
+
+   // Private real identity for admin. The document key is the selected student,
+   // so multiple students can vote separately on the same physical device.
+   await db.collection("classSpace").doc(postId).collection("voteIdentities").doc(voterKey).set({
+     ownerUid:auth.currentUser.uid,
+     portalId:voterKey,
+     actualName,
+     updatedAtMs:Date.now()
+   });
+
+   await loadClassSpace();await loadHomeClassSpace();
+ }catch(e){alert(e.message)}
+}
+async function openAnswers(postId){
+ const p=classSpacePosts.find(x=>x.id===postId);csAnswerPostId.value=postId;csAnswerQuestion.textContent=p?.title||p?.text||"Question";csAnswerText.value="";
+ await loadAnswers(postId);csAnswersModal.classList.remove("hidden");
+}
+function closeAnswers(){csAnswersModal.classList.add("hidden")}
+async function loadAnswers(postId){
+ csAnswersList.innerHTML='<div class="small">Loading…</div>';
+ try{
+   const q=await db.collection("classSpace").doc(postId).collection("answers").orderBy("createdAtMs").get();
+   const a=q.docs.map(d=>d.data());
+   csAnswersList.innerHTML=a.length?a.map(x=>`<div class="cs-answer ${x.isAdmin?"admin":""}"><div class="cs-answer-author">${x.isAdmin?"★ Joyal · Admin":esc(x.authorName||"Student")}</div><div class="cs-answer-text">${esc(x.text||"")}</div></div>`).join(""):'<div class="small">No answers yet.</div>';
+ }catch(e){csAnswersList.innerHTML=`<div class="small">${esc(e.message)}</div>`}
+}
+async function submitAnswer(){
+ const text=csAnswerText.value.trim(),postId=csAnswerPostId.value;if(!text||!postId)return;
+ if(!await ensureClassSpaceAuth())return;
+ const audience=csAnswerAudience.value;
+ try{
+   const payload={
+     ownerUid:auth.currentUser.uid,
+     authorName:selectedStudentName(),
+     isAdmin:false,
+     text,
+     audience,
+     createdAtMs:Date.now()
+   };
+   if(audience==="admin"){
+     await db.collection("classSpace").doc(postId).collection("adminAnswers").add(payload);
+     csAnswerText.value="";
+     alert("Your reply was sent privately to Joyal · Admin.");
+   }else{
+     await db.collection("classSpace").doc(postId).collection("answers").add(payload);
+     csAnswerText.value="";
+     await loadAnswers(postId);
+   }
+ }catch(e){alert(e.message)}
+}
+async function init(){
+ try{
+   await fetchDirectory();
+   studentSearchBox.addEventListener("input",()=>renderChoices(studentSearchBox.value));
+   if(selectedPortalId){
+     const valid=directory.some(x=>x.id===selectedPortalId);
+     const locallyVerified=localStorage.getItem("classpilot_student_verified")==="1";
+     if(valid && locallyVerified){
+       await ensureClassSpaceAuth();
+       try{
+         const ss=await db.collection("studentSessions").doc(auth.currentUser.uid).get();
+         if(ss.exists && ss.data().portalId===selectedPortalId){
+           await loadPortalData(true);
+         }else{
+           localStorage.removeItem("classpilot_student_verified");
+           selectedPortalId="";
+           loading.style.display="none";
+           chooser.style.display="grid";
+           renderChoices();
+         }
+       }catch(e){
+         localStorage.removeItem("classpilot_student_verified");
+         selectedPortalId="";
+         loading.style.display="none";
+         chooser.style.display="grid";
+         renderChoices();
+       }
+     }else{
+       localStorage.removeItem("classpilot_student_portal_id");
+       localStorage.removeItem("classpilot_student_verified");
+       selectedPortalId="";
+       loading.style.display="none";
+       chooser.style.display="grid";
+       renderChoices();
+     }
+   }else{
+     loading.style.display="none";
+     chooser.style.display="grid";
+     renderChoices();
+   }
+   refreshTimer=setInterval(()=>{if(selectedPortalId)loadPortalData(false)},10000);await ensureClassSpaceAuth();classSpaceTimer=setInterval(()=>{
+ if(document.getElementById("classSpacePage")?.classList.contains("active"))loadClassSpace();
+ if(document.getElementById("home")?.classList.contains("active"))loadHomeClassSpace();
+},12000);
+ }catch(e){showError(e.message)}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&selectedPortalId)loadPortalData(false)});
+window.addEventListener("focus",()=>{if(selectedPortalId)loadPortalData(false)});
+init();
+</script>
+</body></html>

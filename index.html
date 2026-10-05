@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClassPilot — CR Management System</title>
+<meta name="theme-color" content="#4158d0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ClassPilot">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#f5f7fb; --card:#ffffff; --text:#182033; --muted:#6b7280; --line:#e7eaf0;
+  --primary:#4158d0; --primary2:#7f53ac; --success:#2f9e74; --danger:#e85959;
+  --warn:#f59f00; --shadow:0 10px 30px rgba(32,42,68,.08); --radius:18px;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sidebar{background:#151d35;color:#fff;padding:22px 18px;position:sticky;top:0;height:100vh}
+.brand{font-weight:800;font-size:21px;margin-bottom:6px}.subbrand{font-size:12px;color:#aab4d0;margin-bottom:24px}
+.nav button{width:100%;border:0;background:transparent;color:#d7def2;text-align:left;padding:12px 14px;border-radius:12px;margin:4px 0;cursor:pointer}
+.nav button.active,.nav button:hover{background:#263455;color:white}
+.main{padding:24px;max-width:1450px;width:100%}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.greeting h1{font-size:28px;margin:0 0 6px}.quote{color:var(--muted);font-size:14px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+.btn.soft{background:#edf0ff;color:#3146b8}.btn.success{background:#e8f8f1;color:#237c5d}.btn.danger{background:#fff0f0;color:#c94040}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.kpi{font-size:28px;font-weight:800;margin:6px 0}.label{font-size:13px;color:var(--muted)}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.section-title h3{margin:0;font-size:17px}
+.list{display:flex;flex-direction:column;gap:10px}.item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfe}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1}.small{font-size:12px;color:var(--muted)}
+.badge{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:700;background:#eef1f8;color:#45506a}.high{background:#ffe8e8;color:#c43b3b}.medium{background:#fff4da;color:#ad7200}.low{background:#e9f8f0;color:#267b5d}
+.page{display:none}.page.active{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-bottom:14px}
+.field{grid-column:span 4}.field.wide{grid-column:span 6}.field.full{grid-column:span 12}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--text)}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{font-size:12px;color:var(--muted)}
+.att-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.status-group{display:flex;gap:6px;flex-wrap:wrap}.status-group button{border:1px solid var(--line);background:#fff;padding:7px 9px;border-radius:9px;cursor:pointer}.status-group button.on{color:#fff}
+.status-group button.present.on{background:#2f9e74;border-color:#2f9e74}
+.status-group button.absent.on{background:#e85959;border-color:#e85959}
+.status-group button.late.on{background:#f59f00;border-color:#f59f00}
+.status-group button.excused.on{background:#748ffc;border-color:#748ffc}
+.att-present{background:#eefaf5!important;border-left:5px solid #2f9e74!important}
+.att-absent{background:#fff1f1!important;border-left:5px solid #e85959!important}
+.att-late{background:#fff8e8!important;border-left:5px solid #f59f00!important}
+.att-excused{background:#f0f3ff!important;border-left:5px solid #748ffc!important}
+.day-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:10px 0}
+.period-chip{padding:10px;border:1px solid var(--line);border-radius:10px;text-align:center;background:#fff}
+.period-chip.done{background:#eefaf5;border-color:#bfe8d6}
+.rawday{display:grid;grid-template-columns:repeat(6,minmax(170px,1fr));gap:10px;overflow:auto}
+.rawperiod{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;min-width:170px}
+.rawperiod h4{margin:0 0 8px;font-size:14px}
+.rawname{font-size:12px;padding:5px 7px;border-radius:8px;margin:4px 0}
+.rawname.p{background:#eaf8f1;color:#237c5d}
+.rawname.a{background:#fff0f0;color:#c94040}
+.rawname.l{background:#fff5db;color:#9a6700}
+.rawname.e{background:#eef1ff;color:#4d5cc7}
+.copy-mini{margin-top:8px;width:100%}
+.hours-box{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hours-stat{padding:10px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
+
+.copybox{white-space:pre-wrap;background:#f8fafc;border:1px dashed #cfd6e6;border-radius:14px;padding:14px;min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+.student-search{margin-bottom:12px}
+.progress{height:8px;background:#edf0f4;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2))}
+.mobile-nav{display:none}
+.hidden{display:none!important}
+/* --- Responsive & polished UI --- */
+.today-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.tt-home-card{position:relative;border-radius:16px;padding:14px;border:1px solid var(--line);background:linear-gradient(180deg,#ffffff,#f8faff);min-height:120px;overflow:hidden}
+.tt-home-card::after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-20px;top:-20px;background:rgba(65,88,208,.08)}
+.tt-home-card.current{border:2px solid var(--primary);box-shadow:0 12px 26px rgba(65,88,208,.14);background:linear-gradient(180deg,#eef1ff,#ffffff)}
+.tt-home-card.next{border-color:#f2c266;background:linear-gradient(180deg,#fff7df,#ffffff)}
+.tt-home-card.done{opacity:.72}
+.tt-hour{font-size:12px;font-weight:800;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.tt-subject{font-weight:800;margin-top:12px;font-size:15px;line-height:1.25}
+.tt-faculty{font-size:12px;color:var(--muted);margin-top:6px}
+.tt-state{display:inline-block;margin-top:10px;font-size:10px;font-weight:800;padding:5px 7px;border-radius:999px;background:#eef1f8}
+.tt-home-card.current .tt-state{background:#dfe4ff;color:#3044ad}
+.tt-home-card.next .tt-state{background:#fff0c3;color:#946200}
+.tt-home-card.done .tt-state{background:#edf6f1;color:#34745d}
+
+.timetable-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+.timetable-pro{min-width:860px;border-collapse:separate;border-spacing:0}
+.timetable-pro th{position:sticky;top:0;background:#f7f8fc;z-index:2}
+.timetable-pro td,.timetable-pro th{border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}
+.timetable-pro tr:last-child td{border-bottom:0}
+.timetable-pro td:last-child,.timetable-pro th:last-child{border-right:0}
+.tt-cell{min-height:135px;padding:8px;background:#fff}
+.tt-cell input{font-size:12px}
+.tt-day{position:sticky;left:0;background:#fafbfe!important;z-index:1;min-width:110px}
+.tt-time-card{padding:12px;border-radius:14px;background:linear-gradient(180deg,#fff,#f8faff);border:1px solid var(--line);text-align:center}
+.tt-time-card strong{display:block;font-size:15px}
+.tt-time-card span{font-size:11px;color:var(--muted)}
+
+.bulk-panel{background:#f8faff;border:1px solid #dfe4f4;border-radius:14px;padding:14px;margin-bottom:14px}
+.check-row{display:flex;gap:10px;flex-wrap:wrap}
+.check-pill{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px}
+.check-pill input{width:auto}
+.student-card-mobile{display:none}
+.student-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.student-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.student-meta div{font-size:12px;color:var(--muted)}
+.student-meta b{color:var(--text);font-weight:700}
+.copy-toast{position:fixed;right:18px;bottom:88px;background:#182033;color:white;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);z-index:120;display:none}
+
+@media(max-width:1200px){
+  .today-strip{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:980px){
+  .app{grid-template-columns:1fr}.sidebar{display:none}.main{padding:14px 12px 84px;max-width:none}
+  .mobile-nav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:30;box-shadow:0 -8px 20px rgba(20,30,55,.06)}
+  .mobile-nav button{border:0;background:#fff;padding:10px 3px 8px;font-size:10px;color:#566079}.mobile-nav button.active{color:var(--primary);font-weight:800}
+  .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 12}
+  .topbar{flex-direction:column;align-items:stretch}.actions{width:100%}.actions .btn{flex:1}
+  .field,.field.wide,.field.full{grid-column:span 12}
+  .today-strip{grid-template-columns:repeat(2,1fr)}
+  .day-grid{grid-template-columns:repeat(3,1fr)}
+  .rawday{grid-template-columns:repeat(6,220px)}
+  .greeting h1{font-size:23px}
+  .card{padding:14px;border-radius:16px}
+  .section-title{gap:10px;align-items:flex-start;flex-wrap:wrap}
+}
+@media(max-width:700px){
+  .today-strip{grid-template-columns:1fr}
+  .tt-home-card{min-height:105px}
+  .student-desktop-table{display:none}
+  .student-card-mobile{display:grid;gap:10px}
+  .student-meta{grid-template-columns:1fr 1fr}
+  .day-grid{grid-template-columns:repeat(2,1fr)}
+  .hours-box{grid-template-columns:1fr}
+  .att-grid{grid-template-columns:1fr}
+  .status-group{justify-content:flex-start}
+  .btn{padding:9px 11px}
+}
+@media(max-width:430px){
+  .main{padding-left:9px;padding-right:9px}
+  .grid{gap:10px}.card{padding:12px}
+  .student-meta{grid-template-columns:1fr}
+  .day-grid{grid-template-columns:1fr 1fr}
+  .topbar .actions{display:grid;grid-template-columns:1fr 1fr}
+  .topbar .actions .btn{width:100%}
+  .check-row{gap:6px}
+  .check-pill{font-size:11px;padding:6px 8px}
+}
+
+html,body{max-width:100%;overflow-x:hidden}
+.main,.page,.grid,.card,.section-title,.row{min-width:0}
+.card{overflow:hidden}
+.scroll-x{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll-x table{min-width:720px}
+table{max-width:100%}
+input,select,textarea,button{max-width:100%}
+.copybox{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.rawday{width:100%;max-width:100%;overflow-x:auto;padding-bottom:6px}
+.rawperiod{min-width:220px}
+.timetable-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.student-desktop-table{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.student-desktop-table table{min-width:900px}
+.history-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.history-scroll table{min-width:760px}
+.report-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.report-scroll table{min-width:650px}
+@media(max-width:700px){
+  .main{width:100%;overflow-x:hidden}
+  .card{width:100%;max-width:100%}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .today-strip{grid-template-columns:1fr}
+  .rawday{display:flex;gap:10px}
+  .rawperiod{flex:0 0 82vw;min-width:0}
+  .copybox{font-size:12px}
+  .section-title>.row{width:100%}
+  .section-title>.row input,.section-title>.row button{flex:1 1 auto}
+}
+@media(max-width:430px){
+  .main{padding-left:8px;padding-right:8px}
+  .card{padding:10px}
+  .actions{gap:6px}
+  .actions .btn{font-size:12px}
+}
+
+
+.mobile-more-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mobile-more-grid button{border:1px solid var(--line);background:#f8faff;border-radius:14px;padding:16px 10px;font-size:22px;cursor:pointer;color:var(--text)}
+.mobile-more-grid button span{display:block;font-size:13px;font-weight:800;margin-top:6px}
+.history-mobile{display:none}
+.history-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.history-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.history-card-grid div{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px}
+.history-card-grid b{display:block;font-size:14px;margin-top:3px}
+@media(max-width:700px){
+  .history-scroll{display:none!important}
+  .history-mobile{display:grid;gap:10px;width:100%;max-width:100%}
+  #historyTable{width:100%!important;max-width:100%!important;overflow:visible!important}
+  .mobile-more-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+  .mobile-more-grid{grid-template-columns:1fr}
+}
+
+/* Final mobile containment hardening */
+*{min-width:0}
+body{width:100%;max-width:100vw}
+.app,.main,.page,.grid,.card{width:100%;max-width:100%}
+#historyTable,#rawDayView,#studentTable,#reportTable,#timetableTable{max-width:100%;min-width:0}
+@media(max-width:700px){
+  .main{overflow-x:clip}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr)}
+  .card{overflow:hidden}
+  .section-title{width:100%}
+  .row{max-width:100%}
+  .row>*{min-width:0}
+  .actions{max-width:100%;flex-wrap:wrap}
+}
+
+.sync-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#eef1f8;color:#4b5670;font-size:11px;font-weight:800}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9aa3b7}.sync-pill.online .sync-dot{background:#2f9e74}.sync-pill.offline .sync-dot{background:#f59f00}.sync-pill.error .sync-dot{background:#e85959}
+.birthday-banner{border:1px solid #f2d488;background:linear-gradient(135deg,#fff9e8,#fff);border-radius:15px;padding:12px}
+.birthday-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#fff;border:1px solid #f1e4bb;margin-top:8px}
+.bday-emoji{font-size:26px}.bday-copy{margin-left:auto}
+.backup-list{display:grid;gap:8px;max-height:320px;overflow:auto}.backup-item{padding:10px;border:1px solid var(--line);border-radius:12px;background:#fbfcfe}
+.cloud-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cloud-grid .full{grid-column:1/-1}
+.install-btn{display:none}
+@media(max-width:700px){.cloud-grid{grid-template-columns:1fr}.bday-copy{margin-left:0}.birthday-item{align-items:flex-start;flex-wrap:wrap}.install-btn{width:100%}}
+
+.portal-row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(130px,.8fr) minmax(180px,1fr) auto;gap:8px;align-items:center}
+.portal-link{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:8px}
+@media(max-width:760px){
+ .portal-row{grid-template-columns:1fr}
+ .portal-row .actions{width:100%}
+ .portal-row .actions .btn{flex:1}
+}
+
+.cs-admin-highlight{border:2px solid #d6a338!important;background:linear-gradient(135deg,#fff9e8,#fff)!important;box-shadow:0 10px 30px rgba(197,145,32,.12)}
+.cs-admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#2d2131;color:#ffd978;font-size:10px;font-weight:900}
+.cs-post-type{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:850}
+.cs-options{display:grid;gap:6px;margin-top:9px}.cs-option{padding:8px 10px;border-radius:10px;background:#f6f8fc;border:1px solid var(--line);font-size:12px}
+.cs-count{font-size:11px;color:var(--muted)}
+
+
+.student-code-row{display:grid;grid-template-columns:minmax(170px,1fr) 110px auto;gap:9px;align-items:center}
+.student-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:900;letter-spacing:.12em;text-align:center;background:#f8f3df;border:1px solid #ead79b;border-radius:10px;padding:8px;color:#6c5312}
+@media(max-width:680px){.student-code-row{grid-template-columns:1fr}.student-code-row .row{width:100%}.student-code-row .row .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">🎓 ClassPilot</div>
+    <div class="subbrand">CR Management System</div>
+    <div class="nav" id="sideNav">
+      <button class="active" data-page="dashboard">🏠 Dashboard</button>
+      <button data-page="attendance">✅ Attendance</button>
+      <button data-page="students">👥 Students</button>
+      <button data-page="tasks">📚 Tasks & Deadlines</button>
+      <button data-page="messages">💬 Messages</button>
+      <button data-page="classspace">✨ ClassSpace</button>
+      <button data-page="groups">🧩 Groups</button>
+      <button data-page="timetable">🗓️ Timetable</button>
+      <button data-page="reports">📊 Reports</button>
+      <button data-page="settings">⚙️ Settings</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="greeting">
+        <h1 id="greet">Good evening, Joyal 👋</h1>
+        <div class="quote" id="quote"></div>
+      </div>
+      <div class="actions">
+        <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncText">Local only</span></span>
+        <button class="btn soft install-btn" id="installBtn" onclick="installPWA()">⬇ Install App</button>
+        <button class="btn primary" onclick="showPage('attendance')">+ Take Attendance</button>
+        <button class="btn soft" onclick="showPage('tasks')">+ Add Task</button>
+      </div>
+    </div>
+
+    <section class="page active" id="dashboard">
+      <div class="grid">
+        <div class="card span-3"><div class="label">Students</div><div class="kpi" id="kpiStudents">31</div><div class="small">Active class list</div></div>
+        <div class="card span-3"><div class="label">Today's Attendance</div><div class="kpi" id="kpiToday">—</div><div class="small">Latest saved session</div></div>
+        <div class="card span-3"><div class="label">Pending Tasks</div><div class="kpi" id="kpiTasks">3</div><div class="small">Assignments & CR work</div></div>
+        <div class="card span-3"><div class="label">Attendance Alert</div><div class="kpi" id="kpiAlert">0</div><div class="small">Below 75%</div></div>
+        <div class="card span-12">
+  <div class="section-title">
+    <div>
+      <h3>Today’s Timetable</h3>
+      <div class="small" id="todayTimetableSubtitle">Live view of your 6-hour day</div>
+    </div>
+    <button class="btn soft" onclick="showPage('timetable')">Open full timetable</button>
+  </div>
+  <div id="todayTimetable" class="today-strip"></div>
+</div>
+
+        <div class="card span-7">
+          <div class="section-title"><h3>Upcoming deadlines</h3><button class="btn soft" onclick="showPage('tasks')">View all</button></div>
+          <div id="dashboardTasks" class="list"></div>
+        </div>
+        <div class="card span-5">
+          <div class="section-title"><h3>Important notices</h3><button class="btn soft" onclick="showPage('messages')">Open</button></div>
+          <div id="dashboardNotices" class="list"></div>
+        </div>
+
+        <div class="card span-12 hidden" id="birthdayCard">
+          <div class="section-title"><h3>🎂 Birthdays</h3><span class="badge medium">Reminder</span></div>
+          <div id="birthdayList"></div>
+        </div>
+        <div class="card span-12">
+          <div class="section-title"><h3>Needs Your Attention</h3><span class="badge high" id="attentionCount">0 items</span></div>
+          <div id="attentionCenter" class="list"></div>
+        </div>
+        <div class="card span-12">
+          <div class="section-title"><h3>Quick actions</h3></div>
+          <div class="actions">
+            <button class="btn success" onclick="showPage('attendance')">Mark attendance</button>
+            <button class="btn soft" onclick="showPage('groups')">Manage practical groups</button>
+            <button class="btn soft" onclick="showPage('students')">Student lookup</button>
+            <button class="btn soft" onclick="showPage('reports')">Attendance reports</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="attendance">
+      <div class="grid">
+        <div class="card span-7">
+          <div class="section-title"><h3>Take Attendance</h3><div class="row"><button class="btn success" onclick="markAll('Present')">All Present</button><button class="btn danger" onclick="markAll('Absent')">All Absent</button></div></div>
+          <div class="form-grid">
+            <div class="field"><label>Subject / Activity</label>
+<input id="attSubject" list="subjectList" placeholder="Type or choose subject/activity">
+<datalist id="subjectList"></datalist>
+<div class="small" style="margin-top:5px">You can type one-off entries like Seminar, Workshop, Guest Lecture, Class Meeting, etc.</div>
+</div>
+            <div class="field"><label>Date</label><input type="date" id="attDate"></div>
+            <div class="field"><label>Faculty</label>
+              <input id="attFaculty" list="facultyList" placeholder="Select or type faculty">
+              <datalist id="facultyList"></datalist>
+            </div>
+            <div class="field"><label>Period / Hour</label><select id="attPeriod">
+<option value="1">Hour 1</option><option value="2">Hour 2</option><option value="3">Hour 3</option>
+<option value="4">Hour 4</option><option value="5">Hour 5</option><option value="6">Hour 6</option>
+</select></div>
+          </div>
+          <div class="card" style="padding:12px;margin-bottom:12px;background:#fbfcff">
+  <div class="row">
+    <div class="grow">
+      <b>Replicate Attendance</b>
+      <div class="small">Copy the exact Present/Absent/Late/Excused pattern from another saved hour, then edit only the changes.</div>
+    </div>
+    <select id="replicateFrom" style="width:auto;min-width:180px"></select>
+    <button class="btn soft" onclick="replicateAttendance()">Replicate to current hour</button>
+  </div>
+</div>
+<div class="hours-box" style="margin-bottom:12px">
+<div class="hours-stat"><div class="label">Current hour</div><b id="currentHourLabel">Hour 1 of 6</b></div>
+<div class="hours-stat"><div class="label">Today saved</div><b id="todaySavedHours">0 / 6 hours</b></div>
+</div>
+<div class="day-grid" id="dayPeriodGrid"></div>
+<div id="attendanceList" class="list"></div>
+          <div class="actions" style="margin-top:14px">
+            <button class="btn primary" onclick="saveAttendance()">Save Attendance</button>
+            <button class="btn soft" onclick="generateCopy()">Generate WhatsApp Format</button>
+          </div>
+        </div>
+        <div class="card span-5">
+          <div class="section-title"><h3>WhatsApp Preview</h3><select id="copyMode" style="width:auto" onchange="generateCopy()"><option>Absent only</option><option>Full attendance</option><option>Compact</option></select></div>
+          <div id="copyBox" class="copybox">Save or generate attendance to preview the message here.</div>
+          <button class="btn success" style="width:100%;margin-top:12px" onclick="copyAttendance()">📋 Copy to Clipboard</button>
+        </div>
+        <div class="card span-12">
+          <div class="section-title"><h3>Previous Attendance Sessions</h3></div>
+          <div id="historyTable" style="max-width:100%;overflow:hidden"></div>
+        </div>
+        <div class="card span-12">
+          <div class="section-title">
+            <h3>Raw Attendance — One Full Day</h3>
+            <div class="row" style="max-width:100%">
+              <input type="date" id="rawDate" style="width:auto;min-width:0">
+              <button class="btn soft" onclick="renderRawDay()">View Day</button>
+              <button class="btn success" onclick="copyRawDay()">Copy Day Summary</button>
+            </div>
+          </div>
+          <div class="small" style="margin-bottom:10px">Shows the original status marked for every student in each of the 6 hours.</div>
+          <div id="rawDayView"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="students">
+      <div class="card">
+        <div class="section-title"><h3>Student Directory</h3><button class="btn soft" onclick="addStudent()">+ Add Student</button></div>
+        <div class="small" style="margin-bottom:10px">Only active students appear in attendance. Omitted students stay in your private records and can be restored.</div>
+        <div class="bulk-panel">
+          <div class="section-title" style="margin-bottom:8px"><h3 style="font-size:15px">Copy Student Details</h3><span class="small">Choose fields and copy the whole active class in one tap.</span></div>
+          <div class="check-row">
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="name" checked> Name</label>
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="regNo" checked> Reg No.</label>
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="admissionNo"> Admission No.</label>
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="dob"> DOB</label>
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="phone" checked> Phone</label>
+            <label class="check-pill"><input type="checkbox" class="bulkField" value="attendance"> Attendance</label>
+          </div>
+          <div class="actions" style="margin-top:10px">
+            <button class="btn primary" onclick="copyBulkStudents(false)">Copy Active Students</button>
+            <button class="btn soft" onclick="copyBulkStudents(true)">Copy All Including Omitted</button>
+          </div>
+        </div>
+        <input class="student-search" id="studentSearch" placeholder="Search student..." oninput="renderStudents()">
+        <div id="studentTable"></div>
+      </div>
+    </section>
+
+    <section class="page" id="tasks">
+      <div class="grid">
+        <div class="card span-5">
+          <div class="section-title"><h3>Add Task / Assignment</h3></div>
+          <div class="form-grid">
+            <div class="field full"><label>Title</label><input id="taskTitle" placeholder="e.g., Submit practical record"></div>
+            <div class="field wide"><label>Subject</label><input id="taskSubject" placeholder="Cognitive Psychology"></div>
+            <div class="field wide"><label>Deadline</label><input id="taskDate" type="date"></div>
+            <div class="field wide"><label>Priority</label><select id="taskPriority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="field wide"><label>Recipients</label><select id="taskRecipients"><option>Whole class</option><option>Selected students</option><option>Personal CR task</option></select></div>
+            <div class="field full"><label>Description</label><textarea id="taskDesc" rows="3"></textarea></div>
+          </div>
+          <button class="btn primary" onclick="addTask()">Save Task</button>
+        </div>
+        <div class="card span-7">
+          <div class="section-title"><h3>Tasks & Deadlines</h3></div>
+          <div id="taskList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="messages">
+      <div class="grid">
+        <div class="card span-5">
+          <div class="section-title"><h3>Create Notice</h3></div>
+          <div class="form-grid">
+            <div class="field full"><label>Title</label><input id="noticeTitle" placeholder="Important announcement"></div>
+            <div class="field full"><label>Category</label><select id="noticeCategory"><option>Faculty Instruction</option><option>Assignment</option><option>Attendance</option><option>Event</option><option>Exam</option><option>General</option></select></div>
+            <div class="field full"><label>Message</label><textarea id="noticeText" rows="5"></textarea></div>
+          </div>
+          <button class="btn primary" onclick="addNotice()">Save Notice</button>
+        </div>
+        <div class="card span-7">
+          <div class="section-title"><h3>Important Messages</h3></div>
+          <div id="noticeList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="page" id="classspace">
+      <div class="grid">
+        <div class="card span-5">
+          <div class="section-title">
+            <div>
+              <h3>Post to ClassSpace</h3>
+              <div class="small">Anything posted here is highlighted to students as <b>Joyal · Admin</b>.</div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field full"><label>Post type</label>
+              <select id="csAdminType" onchange="updateAdminComposer()">
+                <option value="announcement">Announcement</option>
+                <option value="poll">Poll</option>
+                <option value="question">Ask the Class</option>
+                <option value="resource">Study / Resource</option>
+                <option value="rsvp">RSVP</option>
+              </select>
+            </div>
+            <div class="field full"><label>Title</label><input id="csAdminTitle" placeholder="Important class update"></div>
+            <div class="field full"><label>Message / Question</label><textarea id="csAdminText" rows="4" placeholder="Write your message…"></textarea></div>
+            <div class="field full hidden" id="csAdminOptionsWrap"><label>Options (one per line)</label><textarea id="csAdminOptions" rows="4" placeholder="Option 1&#10;Option 2"></textarea></div>
+            <div class="field full hidden" id="csAdminUrlWrap"><label>Resource link</label><input id="csAdminUrl" type="url" placeholder="https://…"></div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" onclick="createAdminClassSpacePost()">Publish as Joyal · Admin</button>
+          </div>
+        </div>
+        <div class="card span-7">
+          <div class="section-title">
+            <div><h3>ClassSpace Moderation</h3><div class="small">Student posts + highlighted admin content.</div></div>
+            <button class="btn soft" onclick="loadAdminClassSpace()">Refresh</button>
+          </div>
+          <div id="adminClassSpaceFeed" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="groups">
+      <div class="card">
+        <div class="section-title"><h3>Practical / Project Groups</h3><button class="btn primary" onclick="copyGroups()">Copy Group List</button></div>
+        <div id="groupList" class="grid"></div>
+      </div>
+    </section>
+
+
+    <section class="page" id="timetable">
+      <div class="grid">
+        <div class="card span-12">
+          <div class="section-title">
+            <div>
+              <h3>Editable Weekly Timetable</h3>
+              <div class="small">Click any cell to edit subject/activity and faculty. Changes are saved in this browser.</div>
+            </div>
+            <button class="btn soft" onclick="resetTimetable()">Reset to uploaded timetable</button>
+          </div>
+          <div class="small" style="margin-bottom:8px">On mobile, swipe horizontally inside the timetable to view all 6 hours.</div><div id="timetableTable" class="timetable-wrap"></div>
+        </div>
+        <div class="card span-12">
+          <div class="section-title"><h3>Period Timings</h3></div>
+          <div id="periodTimes" class="day-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="reports">
+      <div class="grid">
+        <div class="card span-4"><div class="label">Class Average</div><div class="kpi" id="classAvg">—</div></div>
+        <div class="card span-4"><div class="label">Highest Attendance</div><div class="kpi" id="highAtt">—</div></div>
+        <div class="card span-4"><div class="label">Below 75%</div><div class="kpi" id="lowAtt">0</div></div>
+        <div class="card span-12"><div class="section-title"><h3>Individual Attendance Summary</h3></div><div id="reportTable" style="max-width:100%;overflow:hidden"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="settings">
+      <div class="grid">
+        <div class="card span-6">
+          <div class="section-title"><h3>Class Settings</h3></div>
+          <div class="form-grid">
+            <div class="field full"><label>Class Name</label><input value="MSc Applied Psychology"></div>
+            <div class="field full"><label>Attendance alert threshold (%)</label><input id="threshold" type="number" value="75" min="0" max="100"></div>
+          </div>
+        </div>
+        <div class="card span-6">
+          <div class="section-title"><h3>Subjects & Activities</h3></div>
+          <div class="row" style="margin-bottom:10px">
+            <input id="newSubject" placeholder="e.g., Health Psychology / Seminar / Workshop">
+            <button class="btn primary" onclick="addSubject()">Add</button>
+          </div>
+          <div id="subjectManager" class="list"></div>
+        </div>
+        <div class="card span-6">
+          <div class="section-title"><h3>Cloud Sync</h3><span class="sync-pill" id="settingsSyncPill"><span class="sync-dot"></span><span id="settingsSyncText">Not signed in</span></span></div>
+          <div id="signedOutCloud">
+            <div class="cloud-grid">
+              <div><label>Email</label><input id="cloudEmail" type="email" autocomplete="username" placeholder="Your private login email"></div>
+              <div><label>Password</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"></div>
+              <div class="full actions"><button class="btn primary" onclick="cloudSignIn()">Sign in</button><button class="btn soft" onclick="cloudCreateAccount()">Create account</button></div>
+            </div>
+            <div class="small" style="margin-top:8px">Use the same account on phone and laptop to keep one private database.</div>
+          </div>
+          <div id="signedInCloud" class="hidden">
+            <div class="item"><b id="cloudUserLabel">Signed in</b><div class="small" id="lastSyncLabel">Waiting to sync…</div></div>
+            <div class="actions" style="margin-top:10px"><button class="btn success" onclick="syncWithCloud(true)">Sync now</button><button class="btn soft" onclick="cloudSignOut()">Sign out</button></div>
+          </div>
+        </div>
+        <div class="card span-12">
+          <div class="section-title">
+            <div>
+              <h3>Student View Portal</h3>
+              <div class="small">One shared link. Students choose their name and verify with a small personal code issued by you.</div>
+            </div>
+            <div class="row">
+              <button class="btn primary" onclick="publishStudentPortals()">Publish / Update All</button>
+              <button class="btn soft" onclick="copySharedStudentPortal()">Copy Shared Link</button>
+            </div>
+          </div>
+
+          <div class="item" style="margin-bottom:12px">
+            <b>Shared student link</b>
+            <div id="sharedStudentPortalUrl" class="portal-link" style="margin-top:8px"></div>
+          </div>
+
+          <div class="item" style="margin-bottom:12px">
+            <b>Student access codes</b>
+            <div class="small" style="margin-top:4px">
+              Each student must enter their own code the first time they select their name on a browser/device.
+              The code is not included in the public student directory.
+            </div>
+          </div>
+
+          <div id="studentPortalStatus" class="small" style="margin-bottom:10px">Sign in to Firebase to publish student portals.</div>
+          <div id="studentCodeManager" class="list"></div>
+        </div>
+        <div class="card span-6">
+          <div class="section-title"><h3>Version Backups</h3><button class="btn primary" onclick="createManualBackup()">Create Restore Point</button></div>
+          <div class="small" style="margin-bottom:10px">Cloud versions are created automatically after synced changes. Restore any previous state like lightweight version control.</div>
+          <div id="backupList" class="backup-list"><div class="small">Sign in to view cloud versions.</div></div>
+        </div>
+        <div class="card span-6">
+          <div class="section-title"><h3>Data & Offline Storage</h3></div>
+          <p class="small">Every change is saved locally first. When internet returns, pending changes sync automatically to Firebase.</p>
+          <div class="actions">
+            <button class="btn soft" onclick="exportData()">Export JSON Backup</button>
+            <button class="btn danger" onclick="resetData()">Reset Local Data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="copyToast" class="copy-toast">Copied</div>
+<div id="birthdayModal" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:125;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="width:min(620px,100%);max-height:82vh;overflow:auto">
+    <div class="section-title"><div><h3>🎂 Birthday Reminder</h3><div class="small">Starting one day before the birthday.</div></div><button class="btn soft" onclick="birthdayModal.classList.add('hidden')">Close</button></div>
+    <div id="birthdayModalList"></div>
+  </div>
+</div>
+
+<div id="copyModal" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:130;display:flex;align-items:flex-end;justify-content:center;padding:0">
+  <div class="card" style="width:100%;max-width:680px;border-radius:20px 20px 0 0;max-height:86vh;overflow:auto;margin:0">
+    <div class="section-title">
+      <div>
+        <h3>Copy / Share</h3>
+        <div class="small">The text is shown below so it always remains accessible on mobile.</div>
+      </div>
+      <button class="btn soft" onclick="closeCopyModal()">Close</button>
+    </div>
+    <textarea id="copyModalText" rows="12" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px"></textarea>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn primary" onclick="copyFromModal()">📋 Copy now</button>
+      <button class="btn soft" onclick="selectCopyText()">Select all</button>
+      <button class="btn success" id="shareCopyBtn" onclick="shareCopyText()">Share</button>
+    </div>
+    <div class="small" style="margin-top:10px">If your mobile browser blocks clipboard access for a downloaded HTML file, tap <b>Select all</b> and use your phone's Copy option, or use <b>Share</b> to send it directly to WhatsApp.</div>
+  </div>
+</div>
+<div id="studentModal" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="width:min(620px,100%);max-height:90vh;overflow:auto">
+    <div class="section-title"><h3 id="studentModalTitle">Edit Student</h3><button class="btn soft" onclick="closeStudentModal()">Close</button></div>
+    <div class="form-grid">
+      <div class="field wide"><label>Name</label><input id="sdName"></div>
+      <div class="field wide"><label>Register No.</label><input id="sdReg"></div>
+      <div class="field wide"><label>Admission No.</label><input id="sdAdmission"></div>
+      <div class="field wide"><label>Date of Birth</label><input id="sdDob" type="date"></div>
+      <div class="field full"><label>Phone Number</label><input id="sdPhone" type="tel" placeholder="+91 ..."></div>
+      <div class="field full"><label>Private Notes</label><textarea id="sdNotes" rows="3"></textarea></div>
+    </div>
+    <input id="sdOriginalName" type="hidden">
+    <button class="btn primary" onclick="saveStudentDetails()">Save Student</button>
+  </div>
+</div>
+
+<div id="mobileMoreSheet" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:45" onclick="if(event.target===this)toggleMobileMore(false)">
+  <div class="card" style="position:absolute;left:8px;right:8px;bottom:72px;border-radius:20px;padding:14px;max-height:70vh;overflow:auto">
+    <div class="section-title"><h3>More</h3><button class="btn soft" onclick="toggleMobileMore(false)">Close</button></div>
+    <div class="mobile-more-grid">
+      <button onclick="mobileGo('messages')">💬<span>Messages</span></button>
+      <button onclick="mobileGo('classspace')">✨<span>ClassSpace</span></button>
+      <button onclick="mobileGo('groups')">🧩<span>Groups</span></button>
+      <button onclick="mobileGo('timetable')">🗓️<span>Timetable</span></button>
+      <button onclick="mobileGo('reports')">📊<span>Reports</span></button>
+      <button onclick="mobileGo('settings')">⚙️<span>Settings</span></button>
+    </div>
+  </div>
+</div>
+
+<nav class="mobile-nav" id="mobileNav">
+  <button class="active" data-page="dashboard">🏠<br>Home</button>
+  <button data-page="attendance">✅<br>Attendance</button>
+  <button data-page="students">👥<br>Students</button>
+  <button data-page="tasks">📚<br>Tasks</button>
+  <button type="button" onclick="toggleMobileMore(true)">☰<br>More</button>
+</nav>
+
+<div id="adminRepliesModal" class="modal hidden">
+ <div class="card">
+  <div class="row"><div class="grow"><h3>Question Replies</h3><div class="small">Whole-class replies and replies sent only to Joyal.</div></div><button class="btn soft" onclick="adminRepliesModal.classList.add('hidden')">Close</button></div>
+  <div id="adminRepliesList" class="list" style="margin-top:12px"></div>
+ </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCHBFU95np7wPnoVBLjzUE8JsAWZ8VaLIY",
+  authDomain: "classr-29e5f.firebaseapp.com",
+  projectId: "classr-29e5f",
+  storageBucket: "classr-29e5f.firebasestorage.app",
+  messagingSenderId: "26564574282",
+  appId: "1:26564574282:web:6b9fd998fa75e0f19afab3",
+  measurementId: "G-VNWV2LPRRQ"
+};
+let firebaseReady=false, db=null, auth=null, currentUser=null, cloudSyncTimer=null, lastCloudHash="";
+try{
+  firebase.initializeApp(firebaseConfig);
+  auth=firebase.auth(); db=firebase.firestore(); firebaseReady=true;
+  db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+}catch(e){ console.warn("Firebase init failed",e); }
+
+const defaultStudents=[
+"Devika R Nath","Hrikshara S","Safeena E K","Sona K",
+"Advaitha","Anamika Baghel","Bhuvana L","Krishna Priya P R",
+"Gowri S L","Manjeera T","Rishitha Rajesh","Sreelakshmi S Lal",
+"Anjala Nujoom","Anshada","Minta V Anu","Sreedevika",
+"Krithika E R","Lekshmi A G","Sandra K M","Sreelakshmi Sreekumar",
+"Aswin","Faheema","Jibin M","Shahna C H",
+"Abisha R V","Ciya D Cabral","Leena","Rahan S S",
+"Archa M S","Jittu Koshy Madhu","Joyal Jose","Shajoon Xavier"
+];
+const quotes=[
+"Small steps every day lead to big results.",
+"Good leaders make things easier for everyone.",
+"Progress, not perfection, creates momentum.",
+"Organize today for a calmer tomorrow.",
+"Consistency turns responsibility into trust.",
+"Do the important things before they become urgent."
+];
+let students=JSON.parse(localStorage.getItem("cp_students")||"null")||defaultStudents;
+let studentDetails=JSON.parse(localStorage.getItem("cp_student_details")||"{}");
+let omittedStudents=JSON.parse(localStorage.getItem("cp_omitted_students")||"[]");
+
+let attendance=JSON.parse(localStorage.getItem("cp_attendance")||"[]");
+let tasks=JSON.parse(localStorage.getItem("cp_tasks")||"null")||[
+ {title:"Experimental Practical Record",subject:"Cognitive Psychology",date:"2026-09-18",priority:"High",recipients:"Whole class",done:false},
+ {title:"Research Methodology Assignment",subject:"Research Methodology",date:"2026-09-21",priority:"Medium",recipients:"Whole class",done:false},
+ {title:"Confirm practical groups",subject:"CR Task",date:"2026-09-16",priority:"High",recipients:"Personal CR task",done:false}
+];
+let notices=JSON.parse(localStorage.getItem("cp_notices")||"null")||[
+ {title:"Practical groups finalized",category:"General",text:"Experimental practical groups have been finalized. Please check your group."},
+ {title:"Bring practical record",category:"Faculty Instruction",text:"Please bring the practical record for the next Cognitive Psychology session."}
+];
+let currentStatuses={};
+let subjects=JSON.parse(localStorage.getItem("cp_subjects")||"null")||[
+ "History and Systems in Psychology","Indian Concepts and Theories","Cognitive Psychology",
+ "Theories of Personality","Social Psychology in Context","IKS LEEP","Audit/Library","Club Activity"
+];
+let faculties=JSON.parse(localStorage.getItem("cp_faculties")||"null")||[
+ "Dr Satheesh Varma","Dr Ramesh Pattni","Ms Nisha MS","Dr Aleena Mathew","Athira M Nair"
+];
+const defaultTimetable={
+ "Monday":[
+  {subject:"Cognitive Psychology",faculty:"Ms Nisha MS"},
+  {subject:"Theories of Personality",faculty:"Dr Aleena Mathew"},
+  {subject:"Indian Concepts and Theories",faculty:"Dr Ramesh Pattni"},
+  {subject:"Social Psychology in Context",faculty:"Athira M Nair"},
+  {subject:"Audit/Library",faculty:""},
+  {subject:"Audit/Library",faculty:""}
+ ],
+ "Tuesday":[
+  {subject:"History and Systems in Psychology",faculty:"Dr Satheesh Varma"},
+  {subject:"Indian Concepts and Theories",faculty:"Dr Ramesh Pattni"},
+  {subject:"Social Psychology in Context",faculty:"Athira M Nair"},
+  {subject:"Theories of Personality",faculty:"Dr Aleena Mathew"},
+  {subject:"Social Psychology in Context",faculty:"Athira M Nair"},
+  {subject:"Audit/Library",faculty:""}
+ ],
+ "Wednesday":[
+  {subject:"History and Systems in Psychology",faculty:"Dr Satheesh Varma"},
+  {subject:"Theories of Personality",faculty:"Dr Aleena Mathew"},
+  {subject:"IKS LEEP (2nd 15 batch)",faculty:""},
+  {subject:"IKS LEEP (2nd 15 batch)",faculty:""},
+  {subject:"IKS LEEP (1st 15 batch)",faculty:""},
+  {subject:"IKS LEEP (1st 15 batch)",faculty:""}
+ ],
+ "Thursday":[
+  {subject:"Cognitive Psychology",faculty:"Ms Nisha MS"},
+  {subject:"Theories of Personality",faculty:"Dr Aleena Mathew"},
+  {subject:"History and Systems in Psychology",faculty:"Dr Satheesh Varma"},
+  {subject:"Indian Concepts and Theories",faculty:"Dr Ramesh Pattni"},
+  {subject:"Club Activity",faculty:""},
+  {subject:"Club Activity",faculty:""}
+ ],
+ "Friday":[
+  {subject:"Social Psychology in Context",faculty:"Athira M Nair"},
+  {subject:"Cognitive Psychology",faculty:"Ms Nisha MS"},
+  {subject:"History and Systems in Psychology",faculty:"Dr Satheesh Varma"},
+  {subject:"Cognitive Psychology",faculty:"Ms Nisha MS"},
+  {subject:"Indian Concepts and Theories",faculty:"Dr Ramesh Pattni"},
+  {subject:"Audit/Library",faculty:""}
+ ],
+ "Saturday":[
+  {subject:"",faculty:""},{subject:"",faculty:""},{subject:"",faculty:""},
+  {subject:"",faculty:""},{subject:"",faculty:""},{subject:"",faculty:""}
+ ]
+};
+let timetable=JSON.parse(localStorage.getItem("cp_timetable")||"null")||JSON.parse(JSON.stringify(defaultTimetable));
+const periodTiming=["9:00–10:00","10:00–11:00","11:10–12:10","12:10–1:10","2:00–3:00","3:00–4:00"];
+
+let groups=[
+["Devika R Nath","Hrikshara S","Safeena E K","Sona K"],
+["Advaitha","Anamika Baghel","Bhuvana L","Krishna Priya P R"],
+["Gowri S L","Manjeera T","Rishitha Rajesh","Sreelakshmi S Lal"],
+["Anjala Nujoom","Anshada","Minta V Anu","Sreedevika"],
+["Krithika E R","Lekshmi A G","Sandra K M","Sreelakshmi Sreekumar"],
+["Aswin","Faheema","Jibin M","Shahna C H"],
+["Abisha R V","Ciya D Cabral","Leena","Rahan S S"],
+["Archa M S","Jittu Koshy Madhu","Joyal Jose","Shajoon Xavier"]
+];
+// Keep the current active class aligned with the practical-group roster.
+const practicalRoster=[...new Set(groups.flat())];
+if(students.some(s=>!practicalRoster.includes(s)) || practicalRoster.some(s=>!students.includes(s))){
+  students=[...practicalRoster];
+  omittedStudents=omittedStudents.filter(s=>students.includes(s));
+}
+
+let localUpdatedAt=Number(localStorage.getItem("cp_local_updated_at")||0);
+let pendingCloudSync=localStorage.getItem("cp_pending_sync")==="1";
+let deferredInstallPrompt=null;
+
+function appState(){
+ return {students,studentDetails,omittedStudents,attendance,tasks,notices,groups,subjects,faculties,timetable};
+}
+
+// Firestore does not support arrays directly nested inside arrays.
+// Convert nested arrays into map objects before cloud upload, then restore them on download.
+function encodeCloudState(state){
+ const s=JSON.parse(JSON.stringify(state));
+ if(Array.isArray(s.groups)){
+   s.groups=s.groups.map((members,index)=>({index,members:Array.isArray(members)?members:[]}));
+ }
+ return s;
+}
+function decodeCloudState(state){
+ const s=JSON.parse(JSON.stringify(state||{}));
+ if(Array.isArray(s.groups)){
+   // New Firestore-safe format: [{index, members:[...]}]
+   if(s.groups.length===0 || (s.groups[0] && !Array.isArray(s.groups[0]) && Array.isArray(s.groups[0].members))){
+     s.groups=s.groups
+       .slice()
+       .sort((a,b)=>(a.index??0)-(b.index??0))
+       .map(g=>Array.isArray(g.members)?g.members:[]);
+   }
+ }
+ return s;
+}
+function applyAppState(s){
+ if(!s)return;
+ s=decodeCloudState(s);
+ if(Array.isArray(s.students))students=s.students;
+ if(s.studentDetails)studentDetails=s.studentDetails;
+ if(Array.isArray(s.omittedStudents))omittedStudents=s.omittedStudents;
+ if(Array.isArray(s.attendance))attendance=s.attendance;
+ if(Array.isArray(s.tasks))tasks=s.tasks;
+ if(Array.isArray(s.notices))notices=s.notices;
+ if(Array.isArray(s.groups))groups=s.groups;
+ if(Array.isArray(s.subjects))subjects=s.subjects;
+ if(Array.isArray(s.faculties))faculties=s.faculties;
+ if(s.timetable)timetable=s.timetable;
+ persistLocal(false);
+ refreshAllViews();
+}
+function persistLocal(markDirty=true){
+ localStorage.setItem("cp_students",JSON.stringify(students));
+ localStorage.setItem("cp_attendance",JSON.stringify(attendance));
+ localStorage.setItem("cp_tasks",JSON.stringify(tasks));
+ localStorage.setItem("cp_notices",JSON.stringify(notices));
+ localStorage.setItem("cp_subjects",JSON.stringify(subjects));
+ localStorage.setItem("cp_faculties",JSON.stringify(faculties));
+ localStorage.setItem("cp_student_details",JSON.stringify(studentDetails));
+ localStorage.setItem("cp_omitted_students",JSON.stringify(omittedStudents));
+ localStorage.setItem("cp_timetable",JSON.stringify(timetable));
+ if(markDirty){
+   localUpdatedAt=Date.now(); localStorage.setItem("cp_local_updated_at",String(localUpdatedAt));
+   pendingCloudSync=true; localStorage.setItem("cp_pending_sync","1"); scheduleCloudSync();
+ }
+}
+function refreshAllViews(){
+ renderSubjects();renderFaculties();renderTimetable();renderAttendanceList();renderHistory();renderTasks();renderNotices();renderGroups();renderDashboard();renderReports();renderRawDay();updateReplicateOptions();renderStudents();renderBirthdays();
+}
+function stableHash(obj){
+ try{
+   const s=JSON.stringify(obj); let h=2166136261;
+   for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+   return (h>>>0).toString(16);
+ }catch(e){return String(Date.now())}
+}
+
+
+function saveAll(){ persistLocal(true); }
+
+function toggleMobileMore(show){
+  const s=document.getElementById("mobileMoreSheet");
+  if(show===false)s.classList.add("hidden");
+  else if(show===true)s.classList.remove("hidden");
+  else s.classList.toggle("hidden");
+}
+function mobileGo(page){
+  toggleMobileMore(false);
+  showPage(page);
+}
+function showPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+ if(id==="students") renderStudents();
+ if(id==="reports") renderReports();
+ if(id==="settings") renderStudentPortalManager();
+ if(id==="classspace") loadAdminClassSpace();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+
+
+function renderSubjects(){
+ const dl=document.getElementById("subjectList");
+ if(dl) dl.innerHTML=subjects.map(s=>`<option value="${s.replace(/"/g,'&quot;')}"></option>`).join("");
+ const mgr=document.getElementById("subjectManager");
+ if(mgr) mgr.innerHTML=subjects.map((s,i)=>`<div class="item row"><div class="grow"><b>${s}</b></div><button class="btn soft" onclick="renameSubject(${i})">Edit</button><button class="btn danger" onclick="removeSubject(${i})">Delete</button></div>`).join("");
+ if(document.getElementById("attSubject") && !attSubject.value) attSubject.value=subjects[0]||"";
+}
+function addSubject(){
+ const v=(newSubject.value||"").trim(); if(!v)return;
+ if(!subjects.some(s=>s.toLowerCase()===v.toLowerCase())) subjects.push(v);
+ newSubject.value=""; saveAll(); renderSubjects();
+}
+function renameSubject(i){
+ const v=prompt("Edit subject/activity name:",subjects[i]); if(!v||!v.trim())return;
+ const old=subjects[i]; subjects[i]=v.trim();
+ attendance.forEach(r=>{if(r.subject===old)r.subject=subjects[i]});
+ tasks.forEach(t=>{if(t.subject===old)t.subject=subjects[i]});
+ saveAll(); renderSubjects(); renderHistory(); renderTasks(); renderDashboard();
+}
+function removeSubject(i){
+ if(!confirm(`Remove "${subjects[i]}" from suggestions? Existing attendance will remain unchanged.`)) return;
+ subjects.splice(i,1); saveAll(); renderSubjects();
+}
+function updateReplicateOptions(){
+ const el=document.getElementById("replicateFrom"); if(!el)return;
+ const date=attDate.value;
+ const rows=attendance.filter(r=>r.date===date).sort((a,b)=>Number(a.period)-Number(b.period));
+ el.innerHTML='<option value="">Choose saved hour...</option>'+rows.map(r=>`<option value="${r.id}">Hour ${r.period} — ${r.subject}</option>`).join("");
+}
+function replicateAttendance(){
+ const id=Number(replicateFrom.value); if(!id)return alert("Choose a saved hour first.");
+ const r=attendance.find(x=>x.id===id); if(!r)return;
+ currentStatuses={...r.statuses};
+ attSubject.value=r.subject||attSubject.value;
+ attFaculty.value=r.faculty||attFaculty.value;
+ students.forEach(s=>{
+   const item=[...document.querySelectorAll("#attendanceList .item")].find(x=>x.dataset.student===s);
+   if(!item)return;
+   const st=currentStatuses[s]||"Present";
+   item.querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+   const btn=item.querySelector("."+st.toLowerCase()); if(btn)btn.classList.add("on");
+   item.classList.remove("att-present","att-absent","att-late","att-excused");
+   item.classList.add("att-"+st.toLowerCase());
+ });
+ alert(`Attendance from Hour ${r.period} replicated. Adjust any changes, then save the current hour.`);
+}
+
+function daysUntilBirthday(dob){
+ if(!dob)return null;
+ const p=dob.split("-").map(Number); if(p.length!==3)return null;
+ const now=new Date(); now.setHours(0,0,0,0);
+ let next=new Date(now.getFullYear(),p[1]-1,p[2]); next.setHours(0,0,0,0);
+ if(next<now) next=new Date(now.getFullYear()+1,p[1]-1,p[2]);
+ return Math.round((next-now)/86400000);
+}
+function birthdayStudents(){
+ return activeStudents().map(name=>({name,dob:ensureStudentDetail(name).dob,days:daysUntilBirthday(ensureStudentDetail(name).dob)}))
+   .filter(x=>x.dob && x.days!==null && x.days>=0 && x.days<=1)
+   .sort((a,b)=>a.days-b.days || a.name.localeCompare(b.name));
+}
+function birthdayMessage(name,days){
+ return days===0 ? `🎉 Happy Birthday, ${name}! 🎂\nWishing you a wonderful year ahead!` : `🎂 Birthday reminder: ${name}'s birthday is tomorrow.`;
+}
+function renderBirthdays(showPopup=false){
+ const list=birthdayStudents();
+ const card=document.getElementById("birthdayCard"), box=document.getElementById("birthdayList");
+ if(card&&box){
+   if(!list.length){card.classList.add("hidden");box.innerHTML=""}
+   else{
+     card.classList.remove("hidden");
+     box.innerHTML=list.map(x=>`<div class="birthday-item"><span class="bday-emoji">${x.days===0?'🎉':'🎂'}</span><div class="grow"><b>${x.name}</b><div class="small">${x.days===0?'Birthday today':'Birthday tomorrow'} · ${x.dob}</div></div><button class="btn soft bday-copy" onclick="copyOrShow(birthdayMessage('${esc(x.name)}',${x.days}),'Birthday message ready')">Copy message</button></div>`).join("");
+   }
+ }
+ if(showPopup && list.length){
+   birthdayModalList.innerHTML=list.map(x=>`<div class="birthday-item"><span class="bday-emoji">${x.days===0?'🎉':'🎂'}</span><div class="grow"><b>${x.name}</b><div class="small">${x.days===0?'Today':'Tomorrow'} · ${x.dob}</div></div><button class="btn soft" onclick="copyOrShow(birthdayMessage('${esc(x.name)}',${x.days}),'Birthday message ready')">Copy</button></div>`).join("");
+   birthdayModal.classList.remove("hidden");
+ }
+ return list;
+}
+function buildAttentionCenter(){
+ const box=document.getElementById("attentionCenter"); if(!box)return;
+ const items=[];
+ const threshold=Number(document.getElementById("threshold")?.value||75);
+ const low=activeStudents().map(s=>({name:s,...calcStudent(s)})).filter(x=>x.sessions>0&&x.pct<threshold).sort((a,b)=>a.pct-b.pct);
+ low.slice(0,8).forEach(x=>items.push({
+   level:"high", title:`Low attendance: ${x.name}`,
+   detail:`${x.present}/${x.sessions} hours · ${x.pct.toFixed(1)}%`, action:"students"
+ }));
+ birthdayStudents().forEach(x=>items.push({level:"medium",title:`Birthday ${x.days===0?"today":"tomorrow"}: ${x.name}`,detail:x.dob,action:"students"}));
+ const today=new Date().toISOString().slice(0,10);
+ const todayHours=[...new Set(attendance.filter(r=>r.date===today).map(r=>String(r.period)))];
+ if(todayHours.length<6) items.push({
+   level:"medium", title:"Today's attendance is incomplete",
+   detail:`${todayHours.length}/6 hours recorded today`, action:"attendance"
+ });
+ tasks.filter(t=>!t.done).forEach(t=>{
+   if(!t.date)return;
+   const diff=Math.ceil((new Date(t.date+"T23:59:59")-new Date())/86400000);
+   if(diff<0) items.push({level:"high",title:`Overdue: ${t.title}`,detail:`Deadline was ${t.date}`,action:"tasks"});
+   else if(diff<=2) items.push({level:"medium",title:`Deadline soon: ${t.title}`,detail:`Due ${t.date}`,action:"tasks"});
+ });
+ if(!items.length){
+   box.innerHTML='<div class="item"><b>All clear ✅</b><div class="small">No urgent attendance or deadline issues right now.</div></div>';
+   attentionCount.textContent="0 items"; return;
+ }
+ attentionCount.textContent=`${items.length} item${items.length===1?"":"s"}`;
+ box.innerHTML=items.slice(0,12).map(i=>`<div class="item"><div class="row"><div class="grow"><b>${i.title}</b><div class="small">${i.detail}</div></div><span class="badge ${i.level}">${i.level==="high"?"Urgent":"Check"}</span><button class="btn soft" onclick="showPage('${i.action}')">Open</button></div></div>`).join("");
+}
+
+function renderFaculties(){
+ const dl=document.getElementById("facultyList");
+ if(dl) dl.innerHTML=faculties.map(f=>`<option value="${f.replace(/"/g,'&quot;')}"></option>`).join("");
+}
+function renderTimetable(){
+ const el=document.getElementById("timetableTable"); if(!el)return;
+ const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+ el.innerHTML=`<table class="timetable-pro"><thead><tr><th class="tt-day">Day</th>${periodTiming.map((t,i)=>`<th>H${i+1}<br><span class="small">${t}</span></th>`).join("")}</tr></thead><tbody>`+
+ days.map(day=>`<tr><td class="tt-day"><b>${day}</b></td>${timetable[day].map((cell,i)=>`<td>
+   <div class="tt-cell">
+     <label>Subject / Activity</label>
+     <input value="${(cell.subject||"").replace(/"/g,'&quot;')}" placeholder="Subject / activity" onchange="updateTT('${day}',${i},'subject',this.value)">
+     <label style="margin-top:8px">Faculty</label>
+     <input value="${(cell.faculty||"").replace(/"/g,'&quot;')}" list="facultyList" placeholder="Faculty" onchange="updateTT('${day}',${i},'faculty',this.value)">
+   </div>
+ </td>`).join("")}</tr>`).join("")+"</tbody></table>";
+ const pt=document.getElementById("periodTimes");
+ if(pt)pt.innerHTML=periodTiming.map((t,i)=>`<div class="tt-time-card"><strong>Hour ${i+1}</strong><span>${t}</span></div>`).join("");
+}
+function updateTT(day,i,key,value){
+ timetable[day][i][key]=value.trim();
+ if(key==="subject" && value.trim() && !subjects.some(s=>s.toLowerCase()===value.trim().toLowerCase()))subjects.push(value.trim());
+ if(key==="faculty" && value.trim() && !faculties.some(f=>f.toLowerCase()===value.trim().toLowerCase()))faculties.push(value.trim());
+ saveAll(); renderSubjects(); renderFaculties(); renderTodayTimetable();
+}
+function resetTimetable(){
+ if(!confirm("Reset timetable to the timetable from your uploaded PDF?"))return;
+ timetable=JSON.parse(JSON.stringify(defaultTimetable)); saveAll(); renderTimetable();
+}
+function applyTimetableSuggestion(){
+ const date=new Date(attDate.value+"T00:00:00");
+ if(isNaN(date))return;
+ const day=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][date.getDay()];
+ const h=Number(attPeriod.value)-1;
+ const cell=timetable[day]?.[h];
+ if(cell){
+   if(cell.subject)attSubject.value=cell.subject;
+   if(cell.faculty)attFaculty.value=cell.faculty;
+ }
+}
+
+function setSyncStatus(mode,text){
+ for(const [pillId,textId] of [["syncPill","syncText"],["settingsSyncPill","settingsSyncText"]]){
+   const p=document.getElementById(pillId), t=document.getElementById(textId); if(!p||!t)continue;
+   p.classList.remove("online","offline","error"); if(mode)p.classList.add(mode); t.textContent=text;
+ }
+}
+function updateCloudUI(){
+ const out=document.getElementById("signedOutCloud"), inn=document.getElementById("signedInCloud");
+ if(currentUser){
+   out?.classList.add("hidden");inn?.classList.remove("hidden");
+   if(cloudUserLabel)cloudUserLabel.textContent=currentUser.email||"Signed in";
+   setSyncStatus(navigator.onLine?"online":"offline",navigator.onLine?(pendingCloudSync?"Pending sync":"Cloud synced"):"Offline · saved locally");
+ }else{
+   out?.classList.remove("hidden");inn?.classList.add("hidden");setSyncStatus(navigator.onLine?"":"offline",navigator.onLine?"Local only":"Offline · local only");
+ }
+}
+async function cloudCreateAccount(){
+ if(!firebaseReady)return alert("Firebase is unavailable right now.");
+ try{await auth.createUserWithEmailAndPassword(cloudEmail.value.trim(),cloudPassword.value);showToast("Account created")}catch(e){alert(e.message)}
+}
+async function cloudSignIn(){
+ if(!firebaseReady)return alert("Firebase is unavailable right now.");
+ try{await auth.signInWithEmailAndPassword(cloudEmail.value.trim(),cloudPassword.value)}catch(e){alert(e.message)}
+}
+async function cloudSignOut(){if(auth)await auth.signOut()}
+function userDoc(){return db.collection("users").doc(currentUser.uid).collection("app").doc("current")}
+function backupsCol(){return db.collection("users").doc(currentUser.uid).collection("backups")}
+function scheduleCloudSync(){
+ if(!currentUser||!navigator.onLine)return;
+ clearTimeout(cloudSyncTimer); cloudSyncTimer=setTimeout(()=>syncWithCloud(false),1400);
+}
+async function syncWithCloud(force=false){
+ if(!firebaseReady||!currentUser||!navigator.onLine){updateCloudUI();return}
+ try{
+   setSyncStatus("online","Syncing…");
+   const ref=userDoc(); const snap=await ref.get();
+   const localState=appState(); const cloudState=encodeCloudState(localState); const localHash=stableHash(localState);
+   if(snap.exists && !force){
+     const c=snap.data(); const cloudTime=Number(c.clientUpdatedAt||0);
+     if(cloudTime>localUpdatedAt && !pendingCloudSync){
+       applyAppState(c.state); localUpdatedAt=cloudTime; localStorage.setItem("cp_local_updated_at",String(localUpdatedAt));
+       lastCloudHash=stableHash(decodeCloudState(c.state)); pendingCloudSync=false;localStorage.setItem("cp_pending_sync","0");
+       if(lastSyncLabel)lastSyncLabel.textContent="Loaded newer cloud data";
+       await loadBackups();updateCloudUI();return;
+     }
+   }
+   await ref.set({state:cloudState,clientUpdatedAt:localUpdatedAt||Date.now(),serverUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),schemaVersion:2},{merge:true});
+   pendingCloudSync=false;localStorage.setItem("cp_pending_sync","0");
+   if(localHash!==lastCloudHash){await createBackup("Auto sync",localState,localHash);lastCloudHash=localHash}
+   if(lastSyncLabel)lastSyncLabel.textContent="Synced " + new Date().toLocaleString();
+   setSyncStatus("online","Cloud synced"); await loadBackups(); await publishStudentPortals(true);
+ }catch(e){console.warn(e);pendingCloudSync=true;localStorage.setItem("cp_pending_sync","1");setSyncStatus("error","Sync error · local safe"); if(lastSyncLabel)lastSyncLabel.textContent=e?.message||"Sync failed"}
+}
+async function createBackup(label,state=appState(),hash=stableHash(appState())){
+ if(!currentUser||!navigator.onLine)return;
+ await backupsCol().add({label,hash,state:encodeCloudState(state),clientCreatedAt:Date.now(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),schemaVersion:2});
+ // Keep latest 30 versions.
+ const old=await backupsCol().orderBy("clientCreatedAt","desc").get();
+ old.docs.slice(30).forEach(d=>d.ref.delete().catch(()=>{}));
+}
+async function createManualBackup(){
+ if(!currentUser)return alert("Sign in to create a cloud restore point.");
+ if(!navigator.onLine)return alert("You are offline. Local changes are safe and will sync when internet returns.");
+ try{await createBackup("Manual restore point");await loadBackups();showToast("Restore point created")}catch(e){alert(e.message)}
+}
+async function loadBackups(){
+ const box=document.getElementById("backupList");if(!box)return;
+ if(!currentUser){box.innerHTML='<div class="small">Sign in to view cloud versions.</div>';return}
+ try{
+   const q=await backupsCol().orderBy("clientCreatedAt","desc").limit(20).get();
+   if(q.empty){box.innerHTML='<div class="small">No cloud versions yet.</div>';return}
+   box.innerHTML=q.docs.map(d=>{const v=d.data(),dt=new Date(v.clientCreatedAt||Date.now()).toLocaleString();return `<div class="backup-item"><div class="row"><div class="grow"><b>${v.label||"Version"}</b><div class="small">${dt}</div></div><button class="btn soft" onclick="restoreBackup('${d.id}')">Restore</button></div></div>`}).join("");
+ }catch(e){box.innerHTML='<div class="small">Backups unavailable while offline.</div>'}
+}
+async function restoreBackup(id){
+ if(!currentUser||!confirm("Restore this version? Your current state will be saved as a restore point first."))return;
+ try{
+   await createBackup("Before restore"); const d=await backupsCol().doc(id).get(); if(!d.exists)return;
+   applyAppState(d.data().state); localUpdatedAt=Date.now();localStorage.setItem("cp_local_updated_at",String(localUpdatedAt));pendingCloudSync=true;localStorage.setItem("cp_pending_sync","1");await syncWithCloud(true);showToast("Version restored");
+ }catch(e){alert(e.message)}
+}
+
+
+function sharedStudentPortalUrl(){
+ return `${location.origin}/student.html`;
+}
+function ensureStudentAccessCode(name){
+ const d=ensureStudentDetail(name);
+ if(!d.studentAccessCode){
+   d.studentAccessCode=String(Math.floor(1000+Math.random()*9000));
+   persistLocal(true);
+ }
+ return d.studentAccessCode;
+}
+function regenerateStudentAccessCode(name){
+ if(!confirm(`Generate a new access code for ${name}? Their old code will stop working after you publish.`))return;
+ const d=ensureStudentDetail(name);
+ d.studentAccessCode=String(Math.floor(1000+Math.random()*9000));
+ persistLocal(true);
+ renderStudentPortalManager();
+ showToast("New access code generated");
+}
+function copyStudentCode(name){
+ copyOrShow(ensureStudentAccessCode(name),`${name}'s code copied`);
+}
+function copySharedStudentPortal(){
+ copyOrShow(sharedStudentPortalUrl(),"Shared student link copied");
+}
+function attendanceBySubjectForStudent(name){
+ const map={};
+ attendance.forEach(r=>{
+   const st=r.statuses?.[name];
+   if(!st)return;
+   const subject=(r.subject||"Other").trim()||"Other";
+   if(!map[subject])map[subject]={subject,total:0,present:0,absent:0,late:0,excused:0};
+   const x=map[subject];x.total++;
+   if(st==="Present")x.present++;
+   else if(st==="Absent")x.absent++;
+   else if(st==="Late")x.late++;
+   else if(st==="Excused")x.excused++;
+ });
+ return Object.values(map)
+   .map(x=>({...x,percentage:x.total?Number((x.present/x.total*100).toFixed(1)):0}))
+   .sort((a,b)=>a.subject.localeCompare(b.subject,undefined,{sensitivity:"base"}));
+}
+function portalDeadlinesFor(name){
+ const today=new Date();today.setHours(0,0,0,0);
+ return tasks.filter(t=>{
+   if(t.done || t.recipients==="Personal CR task")return false;
+   if(t.date){
+     const d=new Date(t.date+"T00:00:00");
+     if(d < today)return false;
+   }
+   if(t.recipients==="Whole class" || !t.recipients)return true;
+   if(Array.isArray(t.studentNames))return t.studentNames.includes(name);
+   return false;
+ }).map(t=>({
+   title:t.title||"Task",
+   subject:t.subject||"General",
+   date:t.date||"",
+   priority:t.priority||"Medium",
+   description:t.desc||""
+ })).sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
+}
+function portalNotices(){
+ return notices.slice(0,12).map(n=>({title:n.title||"Notice",category:n.category||"General",text:n.text||""}));
+}
+function portalDocId(name){
+ // Stable, opaque-ish local ID generated once and saved with the student.
+ const d=ensureStudentDetail(name);
+ if(!d.sharedPortalId){
+   const bytes=new Uint8Array(12);
+   if(window.crypto?.getRandomValues)crypto.getRandomValues(bytes);
+   else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);
+   d.sharedPortalId=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+   persistLocal(true);
+ }
+ return d.sharedPortalId;
+}
+function portalPayload(name){
+ const details=ensureStudentDetail(name);
+ return {
+   ownerUid:currentUser.uid,
+   studentName:name,
+   regNo:details.regNo||"",
+   updatedAtMs:Date.now(),
+   className:"MSc Applied Psychology",
+   timetable,
+   periodTiming,
+   attendance:attendanceBySubjectForStudent(name),
+   deadlines:portalDeadlinesFor(name),
+   notices:portalNotices()
+ };
+}
+async function publishStudentPortals(silent=false){
+ if(!currentUser || !db){
+   if(!silent)alert("Sign in to Firebase first.");
+   return;
+ }
+ if(!navigator.onLine){
+   if(!silent)alert("You are offline. Portal publishing needs internet.");
+   return;
+ }
+ const active=activeStudents();
+ const status=document.getElementById("studentPortalStatus");
+ if(status)status.textContent=`Publishing ${active.length} student views…`;
+ try{
+   const directory=[];
+   const batchSize=300;
+   for(let start=0;start<active.length;start+=batchSize){
+     const batch=db.batch();
+     active.slice(start,start+batchSize).forEach(name=>{
+       const id=portalDocId(name);
+       directory.push({name,id,regNo:ensureStudentDetail(name).regNo||""});
+       batch.set(db.collection("studentPortals").doc(id),portalPayload(name),{merge:true});
+       batch.set(db.collection("studentPortalSecrets").doc(id),{
+         ownerUid:currentUser.uid,
+         studentName:name,
+         accessCode:ensureStudentAccessCode(name),
+         updatedAtMs:Date.now()
+       },{merge:true});
+     });
+     await batch.commit();
+   }
+   directory.sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:"base"}));
+   await db.collection("studentPortalDirectory").doc("current").set({
+     ownerUid:currentUser.uid,
+     updatedAtMs:Date.now(),
+     students:directory
+   });
+   // Delete published records for omitted students.
+   for(const name of omittedStudents){
+     const id=studentDetails[name]?.sharedPortalId;
+     if(id){
+       await db.collection("studentPortals").doc(id).delete().catch(()=>{});
+       await db.collection("studentPortalSecrets").doc(id).delete().catch(()=>{});
+     }
+   }
+   persistLocal(false);
+   if(document.getElementById("sharedStudentPortalUrl"))sharedStudentPortalUrl.textContent=sharedStudentPortalUrl();
+   if(status)status.textContent=`Published ${active.length} students · ${new Date().toLocaleString()}`;
+   if(!silent)showToast("Student portal updated");
+ }catch(e){
+   console.error("Portal publish failed",e);
+   if(status)status.textContent=`Portal publish failed: ${e.message}`;
+   if(!silent)alert(e.message);
+ }
+}
+function renderStudentPortalManager(){
+ const linkEl=document.getElementById("sharedStudentPortalUrl");
+ if(linkEl)linkEl.textContent=sharedStudentPortalUrl();
+
+ const box=document.getElementById("studentCodeManager");
+ if(!box)return;
+
+ box.innerHTML=activeStudents().map(name=>{
+   const d=ensureStudentDetail(name);
+   const code=ensureStudentAccessCode(name);
+   return `<div class="item student-code-row">
+     <div><b>${name}</b><div class="small">${d.regNo?`Reg: ${d.regNo}`:"Personal student portal access"}</div></div>
+     <div class="student-code">${code}</div>
+     <div class="row">
+       <button class="btn soft" onclick="copyStudentCode('${esc(name)}')">Copy Code</button>
+       <button class="btn danger" onclick="regenerateStudentAccessCode('${esc(name)}')">New Code</button>
+     </div>
+   </div>`;
+ }).join("") || '<div class="small">No active students.</div>';
+}
+
+function updateAdminComposer(){
+ const type=csAdminType.value;
+ csAdminOptionsWrap.classList.toggle("hidden",!(type==="poll"||type==="rsvp"));
+ csAdminUrlWrap.classList.toggle("hidden",type!=="resource");
+ if(type==="rsvp" && !csAdminOptions.value.trim())csAdminOptions.value="Going\nMaybe\nNot Going";
+}
+async function createAdminClassSpacePost(){
+ if(!currentUser)return alert("Sign in to Firebase first.");
+ const title=csAdminTitle.value.trim(), text=csAdminText.value.trim(), type=csAdminType.value;
+ if(!title && !text)return alert("Add a title or message.");
+ let options=[];
+ if(type==="poll"||type==="rsvp"){
+   options=csAdminOptions.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+   if(options.length<2)return alert("Add at least two options.");
+ }
+ try{
+   await db.collection("classSpace").add({
+     ownerUid:currentUser.uid,
+     authorName:"Joyal",
+     isAdmin:true,
+     type,
+     title,
+     text,
+     options,
+     resourceUrl:type==="resource"?csAdminUrl.value.trim():"",
+     status:"open",
+     createdAtMs:Date.now()
+   });
+   csAdminTitle.value="";csAdminText.value="";csAdminOptions.value="";csAdminUrl.value="";
+   updateAdminComposer();showToast("Posted to ClassSpace");await loadAdminClassSpace();
+ }catch(e){alert(e.message)}
+}
+async function loadAdminClassSpace(){
+ const box=document.getElementById("adminClassSpaceFeed");if(!box||!db||!currentUser)return;
+ box.innerHTML='<div class="small">Loading ClassSpace…</div>';
+ try{
+   const snap=await db.collection("classSpace").orderBy("createdAtMs","desc").limit(60).get();
+   const posts=snap.docs.map(d=>({id:d.id,...d.data()}));
+   const voteCounts={};
+   for(const p of posts.filter(x=>x.type==="poll"||x.type==="rsvp")){
+     const vs=await db.collection("classSpace").doc(p.id).collection("votes").get();
+     const ids=await db.collection("classSpace").doc(p.id).collection("voteIdentities").get();
+     const identityMap=Object.fromEntries(ids.docs.map(d=>[d.id,d.data()?.actualName||"Student"]));
+     const counts=(p.options||[]).map(()=>0), voters=(p.options||[]).map(()=>[]);
+     vs.docs.forEach(v=>{
+       const vd=v.data(),i=Number(vd.optionIndex);
+       if(Number.isInteger(i)&&counts[i]!=null){
+         counts[i]++;
+         const actual=identityMap[v.id]||vd.displayName||vd.authorName||"Student";
+         voters[i].push(vd.anonymous?`${actual} (anonymous to class)`:actual);
+       }
+     });
+     voteCounts[p.id]={counts,total:vs.size,voters};
+   }
+   box.innerHTML=posts.length?posts.map(p=>{
+     const admin=!!p.isAdmin,v=voteCounts[p.id],opts=(p.options||[]).map((o,i)=>`<div class="cs-option"><b>${escapeAdminHtml(o)}</b> ${v?`<span class="cs-count">· ${v.counts[i]||0} vote${(v.counts[i]||0)===1?"":"s"}</span><div class="small" style="margin-top:4px">${(v.voters[i]||[]).length?escapeAdminHtml(v.voters[i].join(", ")):"No votes yet"}</div>`:""}</div>`).join("");
+     return `<div class="item ${admin?"cs-admin-highlight":""}">
+       <div class="row">
+         <div class="grow">
+           <div class="row">${admin?'<span class="cs-admin-badge">★ Joyal · Admin</span>':`<span class="badge">${escapeAdminHtml(p.authorName||"Student")}</span>`}<span class="cs-post-type">${escapeAdminHtml(p.type||"post")}</span></div>
+           <b style="display:block;margin-top:7px">${escapeAdminHtml(p.title||"")}</b>
+           <div style="margin-top:5px;white-space:pre-wrap">${escapeAdminHtml(p.text||"")}</div>
+           ${p.resourceUrl?`<div class="small" style="margin-top:6px">${escapeAdminHtml(p.resourceUrl)}</div>`:""}
+           ${opts?`<div class="cs-options">${opts}</div>`:""}
+           <div class="small" style="margin-top:7px">${new Date(p.createdAtMs||Date.now()).toLocaleString()}</div>
+         </div>
+         ${p.type==="question"?`<button class="btn soft" onclick="openAdminQuestionReplies('${p.id}')">Replies</button>`:""}<button class="btn danger" onclick="deleteClassSpacePost('${p.id}')">Delete</button>
+       </div>
+     </div>`;
+   }).join(""):'<div class="small">No ClassSpace posts yet.</div>';
+ }catch(e){box.innerHTML=`<div class="small">Could not load: ${escapeAdminHtml(e.message)}</div>`}
+}
+async function deleteClassSpacePost(id){
+ if(!confirm("Delete this ClassSpace post?"))return;
+ try{await db.collection("classSpace").doc(id).delete();await loadAdminClassSpace();showToast("Post deleted")}catch(e){alert(e.message)}
+}
+function escapeAdminHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+async function openAdminQuestionReplies(postId){
+ if(!currentUser||!db)return;
+ adminRepliesList.innerHTML='<div class="small">Loading replies…</div>';
+ adminRepliesModal.classList.remove('hidden');
+ try{
+   const [pub,priv]=await Promise.all([
+     db.collection("classSpace").doc(postId).collection("answers").orderBy("createdAtMs").get(),
+     db.collection("classSpace").doc(postId).collection("adminAnswers").orderBy("createdAtMs").get()
+   ]);
+   const items=[
+     ...pub.docs.map(d=>({...d.data(),privateToAdmin:false})),
+     ...priv.docs.map(d=>({...d.data(),privateToAdmin:true}))
+   ].sort((a,b)=>(a.createdAtMs||0)-(b.createdAtMs||0));
+   adminRepliesList.innerHTML=items.length?items.map(x=>`<div class="item ${x.privateToAdmin?"cs-admin-highlight":""}"><div class="row"><b>${escapeAdminHtml(x.authorName||"Student")}</b>${x.privateToAdmin?'<span class="cs-admin-badge">Private to Joyal</span>':'<span class="badge">Whole class</span>'}</div><div style="margin-top:6px;white-space:pre-wrap">${escapeAdminHtml(x.text||"")}</div><div class="small" style="margin-top:5px">${new Date(x.createdAtMs||Date.now()).toLocaleString()}</div></div>`).join(""):'<div class="small">No replies yet.</div>';
+ }catch(e){
+   adminRepliesList.innerHTML=`<div class="small">${escapeAdminHtml(e.message)}</div>`;
+ }
+}
+function initFirebaseAuth(){
+ if(!firebaseReady){updateCloudUI();return}
+ auth.onAuthStateChanged(async user=>{
+   currentUser=user; updateCloudUI();
+   if(user){
+     renderStudentPortalManager();
+     try{
+       const snap=await userDoc().get();
+       if(snap.exists){
+         const c=snap.data();const ct=Number(c.clientUpdatedAt||0);
+         if(ct>localUpdatedAt && !pendingCloudSync){applyAppState(c.state);localUpdatedAt=ct;localStorage.setItem("cp_local_updated_at",String(ct));}
+       }
+       await syncWithCloud(false); await loadBackups();
+     }catch(e){console.warn(e);updateCloudUI()}
+   }else loadBackups();
+ });
+}
+window.addEventListener("online",()=>{updateCloudUI();syncWithCloud(false)});
+window.addEventListener("offline",()=>updateCloudUI());
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById("installBtn");if(b)b.style.display="inline-block"});
+async function installPWA(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installBtn.style.display="none"}
+function registerServiceWorker(){if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("service-worker.js").catch(console.warn)}
+function init(){
+ const hour=new Date().getHours(); let g=hour<12?"Good morning":hour<17?"Good afternoon":"Good evening";
+ document.getElementById("greet").textContent=`${g}, Joyal 👋`;
+ document.getElementById("quote").textContent="“"+quotes[Math.floor(Math.random()*quotes.length)]+"”";
+ const today=new Date().toISOString().slice(0,10);
+ document.getElementById("attDate").value=today; document.getElementById("rawDate").value=today;
+ renderSubjects(); renderFaculties(); renderTimetable(); renderAttendanceList(); renderHistory(); renderTasks(); renderNotices(); renderGroups(); renderDashboard(); renderReports(); renderRawDay(); updateReplicateOptions(); renderStudents();
+ attDate.addEventListener("change",()=>{updateDayHours();rawDate.value=attDate.value;updateReplicateOptions();applyTimetableSuggestion();renderTodayTimetable()});
+ attPeriod.addEventListener("change",()=>{updateDayHours();applyTimetableSuggestion()});
+ applyTimetableSuggestion(); renderTodayTimetable(); setInterval(renderTodayTimetable,60000);
+ setTimeout(()=>renderBirthdays(true),250);
+ registerServiceWorker(); initFirebaseAuth(); updateCloudUI();
+}
+
+function alpha(list){return [...list].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));}
+function activeStudents(){return alpha(students.filter(s=>!omittedStudents.includes(s)));}
+
+
+function openCopyModal(text){
+  const m=document.getElementById("copyModal");
+  const ta=document.getElementById("copyModalText");
+  ta.value=text;
+  m.classList.remove("hidden");
+  setTimeout(()=>{ta.focus(); ta.setSelectionRange(0, ta.value.length)},80);
+  const shareBtn=document.getElementById("shareCopyBtn");
+  if(shareBtn) shareBtn.style.display=navigator.share?"inline-block":"none";
+}
+function closeCopyModal(){document.getElementById("copyModal").classList.add("hidden");}
+function selectCopyText(){
+  const ta=document.getElementById("copyModalText");
+  ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+}
+function legacyCopyNow(text){
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    ta.style.position="fixed";
+    ta.style.left="0";
+    ta.style.bottom="0";
+    ta.style.width="1px";
+    ta.style.height="1px";
+    ta.style.opacity="0.01";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok=document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){return false}
+}
+async function copyFromModal(){
+  const text=document.getElementById("copyModalText").value;
+  // This button is a direct user gesture, which is more reliable on mobile.
+  if(legacyCopyNow(text)){
+    showToast("Copied");
+    return;
+  }
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      showToast("Copied");
+      return;
+    }
+  }catch(e){}
+  selectCopyText();
+  alert("Your browser blocked automatic copying. The text is selected — use Copy from your phone's selection menu.");
+}
+async function shareCopyText(){
+  const text=document.getElementById("copyModalText").value;
+  if(navigator.share){
+    try{await navigator.share({text});}catch(e){}
+  }
+}
+async function copyOrShow(text,label="Copied"){
+  // Try synchronous copy first while still inside the original tap event.
+  if(legacyCopyNow(text)){showToast(label);return;}
+  // Then try modern clipboard if secure.
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      showToast(label); return;
+    }
+  }catch(e){}
+  // Guaranteed accessible fallback: visible selectable text.
+  openCopyModal(text);
+}
+function showToast(msg="Copied"){
+ const t=document.getElementById("copyToast"); if(!t)return;
+ t.textContent=msg;t.style.display="block";clearTimeout(window.__toastTimer);
+ window.__toastTimer=setTimeout(()=>t.style.display="none",1400);
+}
+function ensureStudentDetail(name){
+ if(!studentDetails[name]) studentDetails[name]={regNo:"",admissionNo:"",dob:"",phone:"",notes:""};
+ return studentDetails[name];
+}
+function renderAttendanceList(){
+ currentStatuses={};
+ const el=document.getElementById("attendanceList"); el.innerHTML="";
+ activeStudents().forEach((s,i)=>{
+   currentStatuses[s]="Present";
+   const d=document.createElement("div"); d.className="item att-grid att-present"; d.dataset.student=s;
+   d.innerHTML=`<div><b>${i+1}. ${s}</b></div><div class="status-group">
+   <button class="present on" onclick="setStatus('${esc(s)}','Present',this)">P</button>
+   <button class="absent" onclick="setStatus('${esc(s)}','Absent',this)">A</button>
+   <button class="late" onclick="setStatus('${esc(s)}','Late',this)">L</button>
+   <button class="excused" onclick="setStatus('${esc(s)}','Excused',this)">E</button>
+   </div>`;
+   el.appendChild(d);
+ });
+ updateDayHours();
+}
+function esc(s){return s.replace(/'/g,"\\'")}
+function setStatus(name,status,btn){
+ currentStatuses[name]=status;
+ const group=btn.parentElement;
+ group.querySelectorAll("button").forEach(b=>b.classList.remove("on")); btn.classList.add("on");
+ const item=btn.closest(".item");
+ item.classList.remove("att-present","att-absent","att-late","att-excused");
+ item.classList.add("att-"+status.toLowerCase());
+}
+function markAll(status){
+ document.querySelectorAll("#attendanceList .item").forEach(item=>{
+   const name=item.dataset.student; currentStatuses[name]=status;
+   item.querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+   const cls=status.toLowerCase();
+   const btn=item.querySelector("."+cls); if(btn)btn.classList.add("on");
+   item.classList.remove("att-present","att-absent","att-late","att-excused");
+   item.classList.add("att-"+cls);
+ });
+}
+function updateDayHours(){
+ const date=attDate.value;
+ const same=attendance.filter(r=>r.date===date);
+ const saved=[...new Set(same.map(r=>String(r.period)))];
+ const cur=String(attPeriod.value);
+ currentHourLabel.textContent=`Hour ${cur} of 6`;
+ todaySavedHours.textContent=`${saved.length} / 6 hours`;
+ dayPeriodGrid.innerHTML=[1,2,3,4,5,6].map(h=>`<div class="period-chip ${saved.includes(String(h))?"done":""}"><b>H${h}</b><br><span class="small">${saved.includes(String(h))?"Saved":"Pending"}</span></div>`).join("");
+}
+function saveAttendance(){
+ const rec={id:Date.now(),subject:attSubject.value,faculty:attFaculty.value,date:attDate.value,period:String(attPeriod.value),statuses:{...currentStatuses}};
+ const existing=attendance.findIndex(r=>r.date===rec.date && String(r.period)===rec.period);
+ if(existing>=0){
+   if(!confirm(`Hour ${rec.period} is already saved for ${rec.date}. Replace it?`)) return;
+   attendance.splice(existing,1);
+ }
+ if(rec.subject && !subjects.some(s=>s.toLowerCase()===rec.subject.toLowerCase())) subjects.push(rec.subject);
+ if(rec.faculty && !faculties.some(f=>f.toLowerCase()===rec.faculty.toLowerCase())) faculties.push(rec.faculty);
+ attendance.unshift(rec); saveAll(); renderSubjects(); renderHistory(); generateCopy(); renderDashboard(); renderReports(); updateDayHours(); updateReplicateOptions(); renderRawDay();
+ alert(`Hour ${rec.period} attendance saved.`);
+}
+function latestRecord(){return attendance[0]}
+function generateCopy(){
+ const rec={subject:attSubject.value,date:attDate.value,statuses:currentStatuses};
+ const absent=Object.entries(rec.statuses).filter(([_,v])=>v==="Absent").map(([k])=>k);
+ const present=Object.entries(rec.statuses).filter(([_,v])=>v==="Present").map(([k])=>k);
+ const late=Object.entries(rec.statuses).filter(([_,v])=>v==="Late").map(([k])=>k);
+ const exc=Object.entries(rec.statuses).filter(([_,v])=>v==="Excused").map(([k])=>k);
+ const total=Object.keys(rec.statuses).length;
+ const pct=total?((present.length/total)*100).toFixed(1):0;
+ const mode=copyMode.value; let text="";
+ const dateFmt=new Date(rec.date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
+ if(mode==="Absent only"){
+  text=`📌 ATTENDANCE — ${rec.subject.toUpperCase()}\n📅 ${dateFmt}\n⏰ Hour ${attPeriod.value}/6\n👩‍🏫 ${attFaculty.value||"Faculty not set"}\n\nAbsent (${absent.length}):\n${absent.length?absent.map((x,i)=>`${i+1}. ${x}`).join("\n"):"Nil"}\n\nPresent: ${present.length}/${total} (${pct}%)`;
+ }else if(mode==="Full attendance"){
+  text=`📌 ATTENDANCE — ${rec.subject.toUpperCase()}\n📅 ${dateFmt}\n⏰ Hour ${attPeriod.value}/6\n👩‍🏫 ${attFaculty.value||"Faculty not set"}\n\nPresent (${present.length}):\n${present.map((x,i)=>`${i+1}. ${x}`).join("\n")}\n\nAbsent (${absent.length}):\n${absent.length?absent.map((x,i)=>`${i+1}. ${x}`).join("\n"):"Nil"}${late.length?`\n\nLate (${late.length}):\n${late.join(", ")}`:""}${exc.length?`\n\nExcused (${exc.length}):\n${exc.join(", ")}`:""}\n\nTotal: ${total}\nAttendance: ${pct}%`;
+ }else{
+  text=`${rec.subject} | ${dateFmt} | H${attPeriod.value}/6 | ${attFaculty.value||"Faculty not set"}\nP: ${present.length} | A: ${absent.length} | Total: ${total} | ${pct}%\nAbsent: ${absent.length?absent.join(", "):"Nil"}`;
+ }
+ copyBox.textContent=text;
+}
+async function copyAttendance(){generateCopy(); await copyOrShow(copyBox.textContent,"Attendance copied");}
+function renderHistory(){
+ const el=document.getElementById("historyTable");
+ if(!attendance.length){el.innerHTML='<div class="small">No attendance saved yet.</div>'; return}
+ const rows=attendance.slice(0,40).map(r=>{
+   let vals=Object.values(r.statuses),p=vals.filter(x=>x==="Present").length,a=vals.filter(x=>x==="Absent").length,t=vals.length;
+   return {r,p,a,t,pct:t?((p/t)*100).toFixed(1):0};
+ });
+ const desktop=`<div class="history-scroll"><table><thead><tr><th>Date</th><th>Subject</th><th>Faculty</th><th>Hour</th><th>Present</th><th>Absent</th><th>%</th><th>Action</th></tr></thead><tbody>`+
+ rows.map(({r,p,a,t,pct})=>`<tr><td>${r.date}</td><td>${r.subject}</td><td>${r.faculty||"—"}</td><td>H${r.period}/6</td><td style="color:#237c5d;font-weight:700">${p}</td><td style="color:#c94040;font-weight:700">${a}</td><td>${pct}%</td><td><button class="btn soft" onclick="openRawDate('${r.date}')">View day</button></td></tr>`).join("")+"</tbody></table></div>";
+ const mobile=`<div class="history-mobile">`+
+ rows.map(({r,p,a,t,pct})=>`<div class="history-card">
+   <div class="row"><div class="grow"><b>${r.subject}</b><div class="small">${r.date} · Hour ${r.period}/6</div></div><span class="badge">${pct}%</span></div>
+   <div class="small" style="margin-top:5px">${r.faculty||"Faculty not set"}</div>
+   <div class="history-card-grid">
+     <div>Present<b style="color:#237c5d">${p}</b></div>
+     <div>Absent<b style="color:#c94040">${a}</b></div>
+   </div>
+   <div class="actions">
+     <button class="btn soft" onclick="openRawDate('${r.date}')">View full day</button>
+     <button class="btn success" onclick="copySingleHour('${r.date}','${r.period}')">Copy hour</button>
+   </div>
+ </div>`).join("")+`</div>`;
+ el.innerHTML=desktop+mobile;
+}
+function openRawDate(date){rawDate.value=date;renderRawDay();document.getElementById("rawDayView").scrollIntoView({behavior:"smooth"});}
+function renderRawDay(){
+ const date=rawDate.value||attDate.value; rawDate.value=date;
+ const rows=attendance.filter(r=>r.date===date).sort((a,b)=>Number(a.period)-Number(b.period));
+ if(!rows.length){rawDayView.innerHTML='<div class="small">No saved attendance for this date.</div>';return}
+ const byHour={}; rows.forEach(r=>byHour[String(r.period)]=r);
+ rawDayView.innerHTML=`<div class="rawday">`+[1,2,3,4,5,6].map(h=>{
+   const r=byHour[String(h)];
+   if(!r)return `<div class="rawperiod"><h4>Hour ${h}</h4><div class="small">No attendance saved.</div></div>`;
+   const lines=activeStudents().map(s=>{const st=r.statuses[s]||"—";const c=st==="Present"?"p":st==="Absent"?"a":st==="Late"?"l":"e";return `<div class="rawname ${c}">${s} — <b>${st}</b></div>`}).join("");
+   return `<div class="rawperiod"><h4>Hour ${h}</h4><div class="small">${r.subject}${r.faculty?` · ${r.faculty}`:""}</div>${lines}<button class="btn soft copy-mini" onclick="copySingleHour('${date}','${h}')">Copy H${h}</button></div>`;
+ }).join("")+`</div>`;
+}
+async function copySingleHour(date,h){
+ const r=attendance.find(x=>x.date===date&&String(x.period)===String(h)); if(!r)return;
+ const vals=Object.entries(r.statuses); const absent=vals.filter(([_,v])=>v==="Absent").map(([n])=>n); const p=vals.filter(([_,v])=>v==="Present").length;
+ const txt=`📌 ${r.subject.toUpperCase()} — ATTENDANCE\n📅 ${date}\n⏰ Hour ${h}/6\n\nAbsent (${absent.length}):\n${absent.length?absent.map((x,i)=>`${i+1}. ${x}`).join("\n"):"Nil"}\n\nPresent: ${p}/${vals.length}`;
+ await copyOrShow(txt,`Hour ${h} copied`);
+}
+async function copyRawDay(){
+ const date=rawDate.value; const rows=attendance.filter(r=>r.date===date).sort((a,b)=>Number(a.period)-Number(b.period));
+ if(!rows.length)return alert("No attendance saved for this date.");
+ let txt=`📅 ATTENDANCE SUMMARY — ${date}\n`;
+ for(let h=1;h<=6;h++){
+   const r=rows.find(x=>String(x.period)===String(h));
+   if(!r){txt+=`\nHour ${h}: Not recorded\n`;continue}
+   const vals=Object.entries(r.statuses); const a=vals.filter(([_,v])=>v==="Absent").map(([n])=>n);
+   const p=vals.filter(([_,v])=>v==="Present").length;
+   txt+=`\nHour ${h} — ${r.subject}\nPresent: ${p}/${vals.length}\nAbsent: ${a.length?a.join(", "):"Nil"}\n`;
+ }
+ await copyOrShow(txt.trim(),"Full-day summary copied");
+}
+function calcStudent(name){
+ let sessions=0,present=0;
+ attendance.forEach(r=>{if(r.statuses[name]){sessions++; if(r.statuses[name]==="Present")present++;}});
+ return {sessions,present,pct:sessions?(present/sessions*100):0};
+}
+function renderStudents(){
+ const q=(studentSearch.value||"").toLowerCase();
+ const list=alpha(students).filter(s=>s.toLowerCase().includes(q));
+ const rows=list.map(s=>{
+   let x=calcStudent(s), d=ensureStudentDetail(s), omitted=omittedStudents.includes(s);
+   return {s,x,d,omitted};
+ });
+ const desktop=`<div class="student-desktop-table"><table><thead><tr><th>Student</th><th>Reg No.</th><th>Admission No.</th><th>Phone</th><th>Present Hours</th><th>Total Hours</th><th>%</th><th>Status</th><th>Actions</th></tr></thead><tbody>`+
+ rows.map(({s,x,d,omitted})=>`<tr style="${omitted?'opacity:.6':''}">
+   <td><b>${s}</b></td><td>${d.regNo||"—"}</td><td>${d.admissionNo||"—"}</td><td>${d.phone||"—"}</td>
+   <td>${x.present}</td><td>${x.sessions}</td><td>${x.sessions?x.pct.toFixed(1)+"%":"—"}</td>
+   <td><span class="badge ${omitted?'high':'low'}">${omitted?'Omitted':'Active'}</span></td>
+   <td><div class="row">
+     <button class="btn soft" onclick="copyIndividualStudent('${esc(s)}')">Copy</button>
+     <button class="btn soft" onclick="editStudent('${esc(s)}')">Edit</button>
+     <button class="btn ${omitted?'success':'danger'}" onclick="toggleOmit('${esc(s)}')">${omitted?'Restore':'Omit'}</button>
+   </div></td>
+   </tr>`).join("")+"</tbody></table></div>";
+ const mobile=`<div class="student-card-mobile">`+rows.map(({s,x,d,omitted})=>`
+   <div class="student-card" style="${omitted?'opacity:.65':''}">
+     <div class="row"><div class="grow"><b>${s}</b><div class="small">${omitted?'Omitted from attendance':'Active student'}</div></div><span class="badge ${omitted?'high':'low'}">${omitted?'Omitted':'Active'}</span></div>
+     <div class="student-meta">
+       <div>Reg No.<br><b>${d.regNo||"—"}</b></div>
+       <div>Admission No.<br><b>${d.admissionNo||"—"}</b></div>
+       <div>Phone<br><b>${d.phone||"—"}</b></div>
+       <div>Attendance<br><b>${x.sessions?x.pct.toFixed(1)+"%":"—"}</b></div>
+     </div>
+     <div class="actions" style="margin-top:10px">
+       <button class="btn soft" onclick="copyIndividualStudent('${esc(s)}')">Copy</button>
+       <button class="btn soft" onclick="editStudent('${esc(s)}')">Edit</button>
+       <button class="btn ${omitted?'success':'danger'}" onclick="toggleOmit('${esc(s)}')">${omitted?'Restore':'Omit'}</button>
+     </div>
+   </div>`).join("")+`</div>`;
+ studentTable.innerHTML=desktop+mobile;
+}
+function selectedBulkFields(){
+ return [...document.querySelectorAll(".bulkField:checked")].map(x=>x.value);
+}
+function formatStudentDetails(name,fields){
+ const d=ensureStudentDetail(name), a=calcStudent(name);
+ const out=[];
+ if(fields.includes("name")) out.push(`Name: ${name}`);
+ if(fields.includes("regNo")) out.push(`Reg No: ${d.regNo||"—"}`);
+ if(fields.includes("admissionNo")) out.push(`Admission No: ${d.admissionNo||"—"}`);
+ if(fields.includes("dob")) out.push(`DOB: ${d.dob||"—"}`);
+ if(fields.includes("phone")) out.push(`Phone: ${d.phone||"—"}`);
+ if(fields.includes("attendance")) out.push(`Attendance: ${a.present}/${a.sessions} hours${a.sessions?` (${a.pct.toFixed(1)}%)`:""}`);
+ return out.join("\n");
+}
+async function copyIndividualStudent(name){
+ const fields=selectedBulkFields();
+ const use=fields.length?fields:["name","regNo","admissionNo","dob","phone","attendance"];
+ await copyOrShow(formatStudentDetails(name,use),`${name} copied`);
+}
+async function copyBulkStudents(includeOmitted=false){
+ const fields=selectedBulkFields();
+ if(!fields.length)return alert("Choose at least one field.");
+ const list=includeOmitted?alpha(students):activeStudents();
+ const text=list.map((s,i)=>`${i+1}. ${formatStudentDetails(s,fields).replace(/\n/g,"\n   ")}`).join("\n\n");
+ await copyOrShow(text,`${list.length} students copied`);
+}
+function addStudent(){
+ document.getElementById("sdOriginalName").value="";
+ document.getElementById("studentModalTitle").textContent="Add Student";
+ ["sdName","sdReg","sdAdmission","sdDob","sdPhone","sdNotes"].forEach(id=>document.getElementById(id).value="");
+ document.getElementById("studentModal").classList.remove("hidden");
+}
+function editStudent(name){
+ const d=ensureStudentDetail(name);
+ sdOriginalName.value=name; studentModalTitle.textContent="Edit Student";
+ sdName.value=name; sdReg.value=d.regNo||""; sdAdmission.value=d.admissionNo||""; sdDob.value=d.dob||""; sdPhone.value=d.phone||""; sdNotes.value=d.notes||"";
+ studentModal.classList.remove("hidden");
+}
+function closeStudentModal(){studentModal.classList.add("hidden");}
+function saveStudentDetails(){
+ const original=sdOriginalName.value; const name=sdName.value.trim();
+ if(!name)return alert("Student name is required.");
+ if(original && original!==name){
+   const idx=students.indexOf(original); if(idx>=0)students[idx]=name;
+   if(studentDetails[original]){studentDetails[name]=studentDetails[original];delete studentDetails[original]}
+   if(omittedStudents.includes(original)){omittedStudents=omittedStudents.map(x=>x===original?name:x)}
+   attendance.forEach(r=>{if(Object.prototype.hasOwnProperty.call(r.statuses,original)){r.statuses[name]=r.statuses[original];delete r.statuses[original]}});
+   groups=groups.map(g=>g.map(x=>x===original?name:x));
+ }
+ if(!original && !students.includes(name)) students.push(name);
+ studentDetails[name]={regNo:sdReg.value.trim(),admissionNo:sdAdmission.value.trim(),dob:sdDob.value,phone:sdPhone.value.trim(),notes:sdNotes.value.trim()};
+ students.sort((a,b)=>a.localeCompare(b)); saveAll(); closeStudentModal(); renderStudents(); renderAttendanceList(); renderGroups(); renderDashboard();
+}
+function toggleOmit(name){
+ if(omittedStudents.includes(name)) omittedStudents=omittedStudents.filter(x=>x!==name);
+ else omittedStudents.push(name);
+ saveAll(); renderStudents(); renderAttendanceList(); renderDashboard(); renderReports();
+}
+function renderTasks(){
+ taskList.innerHTML=tasks.length?tasks.map((t,i)=>`<div class="item"><div class="row"><div class="grow"><b>${t.title}</b><div class="small">${t.subject} · Due ${t.date} · ${t.recipients}</div></div><span class="badge ${t.priority.toLowerCase()}">${t.priority}</span><button class="btn soft" onclick="copyTaskReminder(${i})">Copy reminder</button><button class="btn ${t.done?"success":"soft"}" onclick="toggleTask(${i})">${t.done?"Done":"Mark done"}</button></div></div>`).join(""):'<div class="small">No tasks.</div>';
+ renderDashboard();
+}
+function addTask(){
+ if(!taskTitle.value.trim()) return alert("Enter a task title.");
+ tasks.unshift({title:taskTitle.value.trim(),subject:taskSubject.value||"General",date:taskDate.value,priority:taskPriority.value,recipients:taskRecipients.value,desc:taskDesc.value,done:false});
+ saveAll(); taskTitle.value=taskSubject.value=taskDesc.value=""; renderTasks();
+}
+async function copyTaskReminder(i){
+ const t=tasks[i];
+ const txt=`📚 *Reminder — ${t.title}*\n\nSubject: ${t.subject}\nDeadline: ${t.date||"Not specified"}\n${t.desc?`\n${t.desc}\n`:""}\nPlease complete/submit it within the deadline.`;
+ await copyOrShow(txt,"Task reminder copied");
+}
+function toggleTask(i){tasks[i].done=!tasks[i].done;saveAll();renderTasks();}
+function renderNotices(){
+ noticeList.innerHTML=notices.map((n,i)=>`<div class="item"><div class="row"><div class="grow"><b>${n.title}</b><div class="small">${n.category}</div><div style="margin-top:6px">${n.text}</div></div><button class="btn soft" onclick="copyNotice(${i})">Copy</button></div></div>`).join("");
+ renderDashboard();
+}
+function addNotice(){
+ if(!noticeTitle.value.trim())return alert("Enter title");
+ notices.unshift({title:noticeTitle.value.trim(),category:noticeCategory.value,text:noticeText.value.trim()});saveAll();noticeTitle.value=noticeText.value="";renderNotices();
+}
+async function copyNotice(i){let n=notices[i];await navigator.clipboard.writeText(`📢 ${n.title}\n\n${n.text}`);alert("Notice copied.");}
+function renderGroups(){
+ groupList.innerHTML=groups.map((g,i)=>`<div class="card span-3"><b>Group ${i+1}</b><div class="small">${g.length} members</div><div style="margin-top:10px">${alpha(g).map((x,j)=>`${j+1}. ${x}`).join("<br>")}</div></div>`).join("");
+}
+async function copyGroups(){
+ const txt=groups.map((g,i)=>`*Group ${i+1}*\n${alpha(g).map((x,j)=>`${j+1}. ${x}`).join("\n")}`).join("\n\n");
+ await copyOrShow(`*Experimental Practicals - Cognitive Psychology*\n\n${txt}\n\n*Total Students: ${groups.flat().length}*`,"Group list copied");
+}
+function renderReports(){
+ const data=activeStudents().map(s=>({name:s,...calcStudent(s)})).filter(x=>x.sessions>0);
+ if(!data.length){classAvg.textContent=highAtt.textContent="—";lowAtt.textContent="0";reportTable.innerHTML='<div class="small">Save attendance to generate reports.</div>';return}
+ const avg=data.reduce((a,b)=>a+b.pct,0)/data.length; const high=[...data].sort((a,b)=>b.pct-a.pct)[0]; const threshold=Number(document.getElementById("threshold")?.value||75); const low=data.filter(x=>x.pct<threshold);
+ classAvg.textContent=avg.toFixed(1)+"%"; highAtt.textContent=high.name.split(" ")[0]+" "+high.pct.toFixed(0)+"%"; lowAtt.textContent=low.length;
+ reportTable.innerHTML=`<div class="report-scroll"><table><thead><tr><th>Student</th><th>Present Hours</th><th>Total Hours</th><th>%</th><th>Status</th></tr></thead><tbody>`+
+ data.sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<tr><td>${x.name}</td><td>${x.present}</td><td>${x.sessions}</td><td>${x.pct.toFixed(1)}%</td><td><span class="badge ${x.pct<threshold?"high":"low"}">${x.pct<threshold?"Attention":"Good"}</span></td></tr>`).join("")+"</tbody></table></div>";
+ document.getElementById("kpiAlert").textContent=low.length;
+}
+
+function currentHourState(){
+ const n=new Date(), mins=n.getHours()*60+n.getMinutes();
+ const ranges=[[540,600],[600,660],[670,730],[730,790],[840,900],[900,960]];
+ for(let i=0;i<ranges.length;i++){
+   if(mins>=ranges[i][0]&&mins<ranges[i][1]) return {current:i,next:i+1};
+   if(mins<ranges[i][0]) return {current:-1,next:i};
+ }
+ return {current:-1,next:-1};
+}
+function renderTodayTimetable(){
+ const box=document.getElementById("todayTimetable"); if(!box)return;
+ const todayDay=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+ const td=timetable[todayDay]||[];
+ const state=currentHourState();
+ if(document.getElementById("todayTimetableSubtitle")){
+   todayTimetableSubtitle.textContent=`${todayDay} · live view of your 6-hour day`;
+ }
+ box.innerHTML=td.map((c,i)=>{
+   const cls=i===state.current?"current":i===state.next?"next":(state.current>=0&&i<state.current)?"done":"";
+   const label=i===state.current?"Now":i===state.next?"Next":(state.current>=0&&i<state.current)?"Completed":"Scheduled";
+   return `<div class="tt-home-card ${cls}">
+     <div class="tt-hour"><span>H${i+1}</span><span>${periodTiming[i]}</span></div>
+     <div class="tt-subject">${c.subject||"No class scheduled"}</div>
+     <div class="tt-faculty">${c.faculty||"—"}</div>
+     <span class="tt-state">${label}</span>
+   </div>`;
+ }).join("");
+}
+function renderDashboard(){
+ kpiStudents.textContent=activeStudents().length; kpiTasks.textContent=tasks.filter(x=>!x.done).length;
+ const r=latestRecord(); if(r){let v=Object.values(r.statuses),p=v.filter(x=>x==="Present").length;kpiToday.textContent=(p/v.length*100).toFixed(0)+"%"} else kpiToday.textContent="—";
+ dashboardTasks.innerHTML=tasks.filter(x=>!x.done).slice(0,4).map(t=>`<div class="item"><b>${t.title}</b><div class="small">${t.subject} · ${t.date}</div></div>`).join("")||'<div class="small">No pending tasks 🎉</div>';
+ dashboardNotices.innerHTML=notices.slice(0,3).map(n=>`<div class="item"><b>${n.title}</b><div class="small">${n.category}</div></div>`).join("");
+ renderTodayTimetable();
+ renderBirthdays(false);
+ buildAttentionCenter();
+}
+function exportData(){
+ const data={...appState(),localUpdatedAt,exportedAt:new Date().toISOString()};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}); const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="classpilot-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+function resetData(){if(confirm("Reset prototype data?")){localStorage.clear();location.reload();}}
+window.addEventListener("pagehide",()=>persistLocal(false));
+init();
+</script>
+</body>
+</html>
