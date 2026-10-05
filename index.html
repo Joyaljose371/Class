@@ -1805,8 +1805,13 @@ async function copyTaskReminder(i){
 }
 function toggleTask(i){tasks[i].done=!tasks[i].done;saveAll();renderTasks();}
 function renderNotices(){
- noticeList.innerHTML=notices.map((n,i)=>`<div class="item"><div class="row"><div class="grow"><b>${n.title}</b><div class="small">${n.category}</div><div style="margin-top:6px">${n.text}</div></div><button class="btn soft" onclick="copyNotice(${i})">Copy</button></div></div>`).join("");
+ noticeList.innerHTML=notices.map((n,i)=>`<div class="item"><div class="row"><div class="grow"><b>${n.title}</b><div class="small">${n.category}</div><div style="margin-top:6px">${n.text}</div></div><button class="btn soft" onclick="copyNotice(${i})">Copy</button><button class="btn danger" onclick="deleteNotice(${i})">Delete</button></div></div>`).join("");
  renderDashboard();
+}
+function deleteNotice(i){
+ const notice=notices[i];
+ if(!notice||!confirm(`Delete the notice "${notice.title}"?`))return;
+ notices.splice(i,1);saveAll();renderNotices();showToast("Notice deleted");
 }
 function addNotice(){
  if(!noticeTitle.value.trim())return alert("Enter title");
