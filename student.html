@@ -283,7 +283,7 @@ function currentHour(){const m=new Date().getHours()*60+new Date().getMinutes(),
 function showError(msg){loading.style.display="none";error.style.display="block";error.innerHTML=`<b>Student portal unavailable</b><div class="small" style="margin-top:7px">${esc(msg)}</div>`}
 function nav(id){if(id==="classSpacePage")loadClassSpace();if(id==="home")loadHomeClassSpace();document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===id));scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.onclick=()=>nav(x.dataset.page));
-function render(){studentName.textContent=data.studentName||"Student";avatar.textContent=(data.studentName||"S").trim().charAt(0).toUpperCase();regNo.textContent=data.regNo?`Reg No. ${data.regNo}`:"";todayLabel.textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});renderToday();renderDeadlines();renderAttendance();renderNotices();renderTimetable();loading.style.display="none";app.style.display="block";bottom.style.display="grid";loadHomeClassSpace()}
+function render(refreshClassSpace=true){studentName.textContent=data.studentName||"Student";avatar.textContent=(data.studentName||"S").trim().charAt(0).toUpperCase();regNo.textContent=data.regNo?`Reg No. ${data.regNo}`:"";todayLabel.textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});renderToday();renderDeadlines();renderAttendance();renderNotices();renderTimetable();loading.style.display="none";app.style.display="block";bottom.style.display="grid";if(refreshClassSpace)loadHomeClassSpace()}
 function renderToday(){const day=dayName(),today=data.timetable?.[day]||[],now=currentHour(),times=data.periodTiming||[];let pick=now>=0?now:0,c=today[pick]||{};nextClassHero.innerHTML=`<div class="next-label">${now>=0?"Now in class":"Today's schedule"}</div><div class="next-subject">${esc(c.subject||"No class scheduled")}</div><div class="next-faculty">${esc(c.faculty||"")}</div><div class="next-time">Hour ${pick+1} · ${esc(times[pick]||"")}</div>`;todayPeriods.innerHTML=[0,1,2,3,4,5].map(i=>`<div class="period ${i===now?"now":""}"><div class="h">H${i+1}</div><div style="font-size:10px;font-weight:800;margin-top:5px">${esc(today[i]?.subject||"—")}</div><div class="t">${esc(times[i]||"")}</div></div>`).join("")}
 function deadlineHtml(list,limit=99){const arr=list.slice(0,limit);if(!arr.length)return '<div class="empty">No upcoming deadlines 🎉</div>';return arr.map(x=>{let d=x.date?new Date(x.date+"T00:00:00"):null,day=d?String(d.getDate()).padStart(2,"0"):"—",mon=d?d.toLocaleDateString("en-IN",{month:"short"}):"";return `<div class="deadline"><div class="datebox">${day}<span>${mon}</span></div><div><b>${esc(x.title)}</b><div class="small">${esc(x.subject||"General")}${x.description?` · ${esc(x.description)}`:""}</div></div><span class="priority ${esc(x.priority)}">${esc(x.priority)}</span></div>`}).join("")}
 function renderDeadlines(){homeDeadlines.innerHTML=deadlineHtml(data.deadlines||[],4);allDeadlines.innerHTML=deadlineHtml(data.deadlines||[])}
@@ -293,7 +293,7 @@ function noticesHtml(list){return list.length?list.map(n=>`<div class="notice"><
 function renderNotices(){homeNotices.innerHTML=noticesHtml((data.notices||[]).slice(0,4));allNotices.innerHTML=noticesHtml(data.notices||[])}
 function renderTimetable(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],times=data.periodTiming||[],tt=data.timetable||{};let h='<div class="week"><div class="tt-cell tt-head tt-day">Day</div>'+times.map((t,i)=>`<div class="tt-cell tt-head">H${i+1}<div class="small">${esc(t)}</div></div>`).join("");days.forEach(day=>{h+=`<div class="tt-cell tt-day">${day}</div>`;for(let i=0;i<6;i++){const c=tt[day]?.[i]||{};h+=`<div class="tt-cell"><div class="tt-sub">${esc(c.subject||"—")}</div><div class="tt-fac">${esc(c.faculty||"")}</div></div>`}});h+='</div>';fullTimetable.innerHTML=h}
 
-let refreshTimer=null;
+let portalUnsubscribe=null;
 async function fetchDirectory(){
  const snap=await db.collection("studentPortalDirectory").doc("current").get();
  if(!snap.exists)throw new Error("The student portal has not been published yet.");
@@ -353,6 +353,7 @@ async function verifyStudentCode(){
  }
 }
 function changeStudent(){
+ if(portalUnsubscribe){portalUnsubscribe();portalUnsubscribe=null}
  localStorage.removeItem("classpilot_student_portal_id");
  localStorage.removeItem("classpilot_student_verified");
  selectedPortalId="";
@@ -360,31 +361,37 @@ function changeStudent(){
  chooser.style.display="grid";
  renderChoices();
 }
-async function loadPortalData(showErrors=true){
- if(!selectedPortalId)return false;
- try{
-   const snap=await db.collection("studentPortals").doc(selectedPortalId).get();
-   if(!snap.exists){
-     localStorage.removeItem("classpilot_student_portal_id");
-     selectedPortalId="";
-     if(showErrors){
-       loading.style.display="none";
-       chooser.style.display="grid";
+function loadPortalData(showErrors=true){
+ if(!selectedPortalId)return Promise.resolve(false);
+ if(portalUnsubscribe){portalUnsubscribe();portalUnsubscribe=null}
+ const portalId=selectedPortalId;
+ return new Promise(resolve=>{
+   let firstSnapshot=true;
+   portalUnsubscribe=db.collection("studentPortals").doc(portalId).onSnapshot(snap=>{
+     if(!snap.exists){
+       if(portalUnsubscribe){portalUnsubscribe();portalUnsubscribe=null}
+       localStorage.removeItem("classpilot_student_portal_id");
+       localStorage.removeItem("classpilot_student_verified");
+       selectedPortalId="";data=null;
+       app.style.display="none";bottom.style.display="none";
+       loading.style.display="none";chooser.style.display="grid";
        renderChoices();
+       if(firstSnapshot){firstSnapshot=false;resolve(false)}
+       return;
      }
-     return false;
-   }
-   const updated=snap.data();
-   const changed=!data || JSON.stringify(updated)!==JSON.stringify(data);
-   data=updated;
-   if(document.getElementById("portalStatus"))portalStatus.textContent="● Updated "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-   if(changed)render();
-   return true;
- }catch(e){
-   console.warn("Student portal refresh failed:",e);
-   if(showErrors && !data)showError(e.message);
-   return false;
- }
+    const updated=snap.data();
+    const hadPortalData=!!data;
+    const changed=!data||JSON.stringify(updated)!==JSON.stringify(data);
+     data=updated;
+     if(document.getElementById("portalStatus"))portalStatus.textContent="● Updated "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    if(changed)render(!hadPortalData);
+     if(firstSnapshot){firstSnapshot=false;resolve(true)}
+   },e=>{
+     console.warn("Student portal listener failed:",e);
+     if(showErrors&&!data)showError(e.message);
+     if(firstSnapshot){firstSnapshot=false;resolve(false)}
+   });
+ });
 }
 
 let classSpacePosts=[],classSpaceTimer=null;
@@ -719,7 +726,7 @@ async function init(){
      chooser.style.display="grid";
      renderChoices();
    }
-   refreshTimer=setInterval(()=>{if(selectedPortalId)loadPortalData(false)},10000);await ensureClassSpaceAuth();classSpaceTimer=setInterval(()=>{
+  await ensureClassSpaceAuth();classSpaceTimer=setInterval(()=>{
  if(document.getElementById("classSpacePage")?.classList.contains("active"))loadClassSpace();
  if(document.getElementById("home")?.classList.contains("active"))loadHomeClassSpace();
 },12000);
@@ -753,8 +760,6 @@ function setupStudentInstall(){
  if(!isStudentInstalled())setTimeout(showStudentInstallPrompt,700);
 }
 setupStudentInstall();
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&selectedPortalId)loadPortalData(false)});
-window.addEventListener("focus",()=>{if(selectedPortalId)loadPortalData(false)});
 init();
 </script>
 </body></html>
