@@ -89,14 +89,16 @@ service cloud.firestore {
         allow read, write: if isClassAdmin();
       }
 
-      // Public results contain no student portal ID or display name.
+      // Public results may contain a name only when that voter opted in.
       match /publicVotes/{voteId} {
         allow read: if request.auth != null;
         allow create, update: if request.auth != null
-          && request.resource.data.keys().hasOnly(['ownerUid', 'optionIndex', 'anonymous', 'updatedAtMs'])
+          && request.resource.data.keys().hasOnly(['ownerUid', 'optionIndex', 'anonymous', 'updatedAtMs', 'displayName'])
           && request.resource.data.optionIndex is int
           && request.resource.data.anonymous is bool
           && request.resource.data.updatedAtMs is int
+          && ((request.resource.data.anonymous == true && !('displayName' in request.resource.data))
+              || (request.resource.data.anonymous == false && request.resource.data.displayName is string))
           && (isClassAdmin() || request.resource.data.ownerUid == request.auth.uid)
           && (isClassAdmin()
               || !exists(/databases/$(database)/documents/classSpace/$(postId)/publicVotes/$(voteId))

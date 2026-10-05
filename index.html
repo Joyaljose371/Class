@@ -1365,12 +1365,14 @@ async function loadAdminClassSpace(){
              voteId,
              updatedAtMs:oldVote.data().updatedAtMs||Date.now()
            },{merge:true});
-           migration.set(postRef.collection("publicVotes").doc(voteId),{
+           const migratedVote={
              ownerUid:oldVote.data().ownerUid||currentUser.uid,
              optionIndex:Number(oldVote.data().optionIndex),
              anonymous:!!oldVote.data().anonymous,
              updatedAtMs:oldVote.data().updatedAtMs||Date.now()
-           });
+           };
+           if(!migratedVote.anonymous&&oldVote.data().displayName)migratedVote.displayName=oldVote.data().displayName;
+           migration.set(postRef.collection("publicVotes").doc(voteId),migratedVote);
          }
          migration.delete(oldVote.ref);
        });
