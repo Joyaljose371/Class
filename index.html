@@ -636,7 +636,7 @@ body{width:100%;max-width:100vw}
           <div class="section-title">
             <div>
               <h3>Student View Portal</h3>
-              <div class="small">One shared link. Students choose their name and verify with a small personal code issued by you.</div>
+              <div class="small">One shared link. Students select their name and use the register number saved in Student Details when drawing a topic. No Rep-issued login code is required.</div>
             </div>
             <div class="row">
               <button class="btn primary" onclick="publishStudentPortals()">Publish / Update All</button>
@@ -649,16 +649,7 @@ body{width:100%;max-width:100vw}
             <div id="sharedStudentPortalUrl" class="portal-link" style="margin-top:8px"></div>
           </div>
 
-          <div class="item" style="margin-bottom:12px">
-            <b>Student access codes</b>
-            <div class="small" style="margin-top:4px">
-              Each student must enter their own code the first time they select their name on a browser/device.
-              The code is not included in the public student directory.
-            </div>
-          </div>
-
           <div id="studentPortalStatus" class="small" style="margin-bottom:10px">Sign in to Firebase to publish student portals.</div>
-          <div id="studentCodeManager" class="list"></div>
         </div>
         <div class="card span-6">
           <div class="section-title"><h3>Version Backups</h3><button class="btn primary" onclick="createManualBackup()">Create Restore Point</button></div>
@@ -709,7 +700,7 @@ body{width:100%;max-width:100vw}
     <div class="section-title"><h3 id="studentModalTitle">Edit Student</h3><button class="btn soft" onclick="closeStudentModal()">Close</button></div>
     <div class="form-grid">
       <div class="field wide"><label>Name</label><input id="sdName"></div>
-      <div class="field wide"><label>Register No.</label><input id="sdReg"></div>
+      <div class="field wide"><label>Register No. (needed for topic draw)</label><input id="sdReg" autocomplete="off" placeholder="Enter the student's registration number"></div>
       <div class="field wide"><label>Admission No.</label><input id="sdAdmission"></div>
       <div class="field wide"><label>Date of Birth</label><input id="sdDob" type="date"></div>
       <div class="field full"><label>Phone Number</label><input id="sdPhone" type="tel" placeholder="+91 ..."></div>
@@ -1370,44 +1361,8 @@ async function restoreBackup(id){
 function sharedStudentPortalUrl(){
  return `${location.origin}/Class/student.html`;
 }
-function ensureStudentAccessCode(name){
- const d=ensureStudentDetail(name);
- if(!d.studentAccessCode){
-   d.studentAccessCode=String(Math.floor(1000+Math.random()*9000));
-   persistLocal(true);
- }
- return d.studentAccessCode;
-}
-function regenerateStudentAccessCode(name){
- if(!confirm(`Generate a new access code for ${name}? Their old code will stop working after you publish.`))return;
- const d=ensureStudentDetail(name);
- d.studentAccessCode=String(Math.floor(1000+Math.random()*9000));
- persistLocal(true);
- renderStudentPortalManager();
- showToast("New access code generated");
-}
-function copyStudentCode(name){
- copyOrShow(ensureStudentAccessCode(name),`${name}'s code copied`);
-}
 function copySharedStudentPortal(){
  copyOrShow(sharedStudentPortalUrl(),"Shared student link copied");
-}
-function attendanceBySubjectForStudent(name){
- const map={};
- attendance.forEach(r=>{
-   const st=r.statuses?.[name];
-   if(!st)return;
-   const subject=(r.subject||"Other").trim()||"Other";
-   if(!map[subject])map[subject]={subject,total:0,present:0,absent:0,late:0,excused:0};
-   const x=map[subject];x.total++;
-   if(st==="Present")x.present++;
-   else if(st==="Absent")x.absent++;
-   else if(st==="Late")x.late++;
-   else if(st==="Excused")x.excused++;
- });
- return Object.values(map)
-   .map(x=>({...x,percentage:x.total?Number((x.present/x.total*100).toFixed(1)):0}))
-   .sort((a,b)=>a.subject.localeCompare(b.subject,undefined,{sensitivity:"base"}));
 }
 function portalDeadlinesFor(name){
  const today=new Date();today.setHours(0,0,0,0);
@@ -1448,12 +1403,12 @@ function portalPayload(name){
  return {
    ownerUid:currentUser.uid,
    studentName:name,
-   regNo:details.regNo||"",
+   regNo:String(details.regNo||"").replace(/\s+/g,"").toLocaleUpperCase(),
    updatedAtMs:Date.now(),
    className:"MSc Applied Psychology",
    timetable,
    periodTiming,
-   attendance:attendanceBySubjectForStudent(name),
+   attendance:firebase.firestore.FieldValue.delete(),
    deadlines:portalDeadlinesFor(name),
    notices:portalNotices()
  };
@@ -1477,14 +1432,8 @@ async function publishStudentPortals(silent=false){
      const batch=db.batch();
      active.slice(start,start+batchSize).forEach(name=>{
        const id=portalDocId(name);
-       directory.push({name,id,regNo:ensureStudentDetail(name).regNo||""});
+       directory.push({name,id});
        batch.set(db.collection("studentPortals").doc(id),portalPayload(name),{merge:true});
-       batch.set(db.collection("studentPortalSecrets").doc(id),{
-         ownerUid:currentUser.uid,
-         studentName:name,
-         accessCode:ensureStudentAccessCode(name),
-         updatedAtMs:Date.now()
-       },{merge:true});
      });
      await batch.commit();
    }
@@ -1494,6 +1443,13 @@ async function publishStudentPortals(silent=false){
      updatedAtMs:Date.now(),
      students:directory
    });
+   for(let start=0;start<directory.length;start+=400){
+     const batch=db.batch();
+     directory.slice(start,start+400).forEach(student=>{
+       batch.delete(db.collection("studentPortalSecrets").doc(student.id));
+     });
+     await batch.commit();
+   }
    // Delete published records for omitted students.
    for(const name of omittedStudents){
      const id=studentDetails[name]?.sharedPortalId;
@@ -1502,7 +1458,11 @@ async function publishStudentPortals(silent=false){
        await db.collection("studentPortalSecrets").doc(id).delete().catch(()=>{});
      }
    }
-   persistLocal(false);
+   let removedStudentCodes=false;
+   Object.values(studentDetails||{}).forEach(details=>{
+     if(details&&"studentAccessCode" in details){delete details.studentAccessCode;removedStudentCodes=true}
+   });
+   persistLocal(removedStudentCodes);
    if(document.getElementById("sharedStudentPortalUrl"))sharedStudentPortalUrl.textContent=sharedStudentPortalUrl();
    if(status)status.textContent=`Published ${active.length} students · ${new Date().toLocaleString()}`;
    if(!silent)showToast("Student portal updated");
@@ -1515,22 +1475,6 @@ async function publishStudentPortals(silent=false){
 function renderStudentPortalManager(){
  const linkEl=document.getElementById("sharedStudentPortalUrl");
  if(linkEl)linkEl.textContent=sharedStudentPortalUrl();
-
- const box=document.getElementById("studentCodeManager");
- if(!box)return;
-
- box.innerHTML=activeStudents().map(name=>{
-   const d=ensureStudentDetail(name);
-   const code=ensureStudentAccessCode(name);
-   return `<div class="item student-code-row">
-     <div><b>${name}</b><div class="small">${d.regNo?`Reg: ${d.regNo}`:"Personal student portal access"}</div></div>
-     <div class="student-code">${code}</div>
-     <div class="row">
-       <button class="btn soft" onclick="copyStudentCode('${esc(name)}')">Copy Code</button>
-       <button class="btn danger" onclick="regenerateStudentAccessCode('${esc(name)}')">New Code</button>
-     </div>
-   </div>`;
- }).join("") || '<div class="small">No active students.</div>';
 }
 
 function updateAdminComposer(){

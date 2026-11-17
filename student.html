@@ -18,13 +18,13 @@ if(location.protocol==="http:"||location.protocol==="https:"){
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ClassPilot Student</title>
 <style>
-:root{--bg:#061919;--surface:#102d2b;--text:#f4f8f7;--muted:#9cb2ae;--line:rgba(255,255,255,.08);--shadow:0 22px 55px rgba(0,0,0,.28)}
+:root{--bg:#0b1224;--surface:#16213a;--text:#f5f7ff;--muted:#a9b5cf;--line:rgba(194,208,255,.12);--shadow:0 22px 55px rgba(0,0,0,.3)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
-body{background:radial-gradient(circle at 90% 0%,rgba(114,86,91,.55),transparent 30%),radial-gradient(circle at 0% 38%,rgba(0,103,105,.22),transparent 26%),linear-gradient(180deg,#081e1d,#051716 70%)}
+body{background:radial-gradient(circle at 90% 0%,rgba(101,83,194,.32),transparent 32%),radial-gradient(circle at 0% 38%,rgba(16,185,173,.14),transparent 28%),linear-gradient(180deg,#101a33,#0a1020 70%)}
 button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px}
-.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#22a6a8,#ef6877);font-weight:900}.hello{display:flex;align-items:center;gap:11px}.eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}.name{font-size:19px;font-weight:850;margin-top:2px}.small{font-size:11px;color:var(--muted)}.live{border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:11px;background:rgba(255,255,255,.035)}
+.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#8b75f5,#27c9c4);font-weight:900}.hello{display:flex;align-items:center;gap:11px}.eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}.name{font-size:19px;font-weight:850;margin-top:2px}.small{font-size:11px;color:var(--muted)}.live{border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:11px;background:rgba(255,255,255,.035)}
 .page{display:none}.page.active{display:block}.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:22px 0 10px}.section-head h2{font-size:18px;margin:0}.section-head span{font-size:11px;color:var(--muted)}
-.hero{background:linear-gradient(135deg,rgba(80,57,69,.92),rgba(57,77,70,.88));border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-54px;top:-70px;background:rgba(255,255,255,.07)}
+.hero{background:linear-gradient(135deg,rgba(55,58,112,.94),rgba(22,89,91,.9));border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-54px;top:-70px;background:rgba(255,255,255,.07)}
 .next-label{font-size:12px;color:#e9cccc}.next-time{font-size:11px;color:#c4d2cf;margin-top:5px}.next-subject{font-size:22px;font-weight:900;margin:12px 0 3px}.next-faculty{font-size:12px;color:#d7e3e0}
 .period-row{display:flex;gap:8px;overflow:auto;padding:3px 0 7px;scrollbar-width:none}.period{min-width:92px;border:1px solid var(--line);border-radius:15px;padding:10px;background:rgba(255,255,255,.035);text-align:center}.period.now{background:#f4f6f3;color:#132623}.period .h{font-weight:900;font-size:12px}.period .t{font-size:9px;margin-top:4px;color:var(--muted)}.period.now .t{color:#51615e}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:13px}.s5{grid-column:span 5}.s7{grid-column:span 7}.s12{grid-column:span 12}
@@ -57,8 +57,64 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 @keyframes assignmentCardFlip{0%,100%{transform:rotateY(0)}50%{transform:rotateY(180deg)}}
 @keyframes assignmentCaptionPulse{to{color:#eafff8;opacity:.65}}
 @media(max-width:520px){.assignment-draw-animation{min-height:170px}.assignment-draw-orbit{width:128px;height:128px}}
-@media(prefers-reduced-motion:reduce){.assignment-topic-result,.assignment-draw-animation.is-shuffling .assignment-draw-orbit,.assignment-draw-animation.is-shuffling .assignment-draw-card,.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(1),.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(2),.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(3),.assignment-draw-animation.is-shuffling .assignment-draw-caption{animation:none}}
-.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,680px);display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:rgba(7,26,25,.94);backdrop-filter:blur(16px);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;overflow:hidden;z-index:20}.bottom button{border:0;background:transparent;color:#90a9a4;padding:11px 3px 13px;font-size:9px}.bottom button.active{color:white;background:rgba(255,255,255,.055)}.bottom b{font-size:17px;display:block;margin-bottom:2px}
+.topic-picker{position:relative;isolation:isolate;overflow:hidden;margin:17px 0 23px;padding:clamp(18px,3vw,30px);border:1px solid rgba(157,171,255,.24);border-radius:26px;background:radial-gradient(ellipse at 88% 7%,rgba(72,217,198,.19),transparent 29%),radial-gradient(ellipse at 4% 92%,rgba(145,103,255,.15),transparent 35%),linear-gradient(135deg,#1b2b57 0%,#17294a 52%,#153a49 100%);box-shadow:0 24px 65px rgba(0,0,0,.28)}
+.topic-picker::before,.topic-picker::after{position:absolute;z-index:-1;content:"";border:1px solid rgba(150,236,215,.08);border-radius:50%;pointer-events:none}
+.topic-picker::before{width:340px;height:340px;right:-110px;top:-190px}
+.topic-picker::after{width:245px;height:245px;right:-63px;top:-140px}
+.topic-picker-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.topic-picker-kicker,.topic-picker-round{display:inline-flex;align-items:center;gap:7px;min-height:28px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.045);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.topic-picker-kicker{color:#b8f5e6}.topic-picker-round{color:#e1e6ff;letter-spacing:.04em}
+.topic-picker-round::before{content:"";width:6px;height:6px;border-radius:50%;background:#80f0d1;box-shadow:0 0 12px rgba(113,228,183,.8)}
+.topic-picker-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.85fr);gap:clamp(18px,4vw,48px);align-items:center;margin-top:22px}
+.topic-picker-copy h2{max-width:560px;margin:0;font-size:clamp(27px,4.2vw,43px);line-height:1.04;letter-spacing:-.045em}
+.topic-picker-copy h2 span{color:#8bf1d5}
+.topic-picker-copy>p{max-width:540px;margin:13px 0 0;color:#c1cce8;font-size:13px;line-height:1.7}
+.topic-picker-copy{position:relative;min-height:145px;padding-right:142px}
+.topic-picker-art{position:absolute;right:0;top:-9px;width:142px;height:135px;opacity:.85;pointer-events:none}
+.topic-picker-art .orbit{position:absolute;inset:5px 14px 0;border:1px dashed rgba(131,231,201,.24);border-radius:50%;animation:assignmentOrbit 24s linear infinite}
+.topic-picker-art .art-spark{position:absolute;color:#a8f4d9;font-size:15px;animation:topicSparkle 2.4s ease-in-out infinite alternate}
+.topic-picker-art .art-spark.one{left:18px;top:21px}.topic-picker-art .art-spark.two{right:12px;top:52px;animation-delay:.7s}.topic-picker-art .art-spark.three{left:36px;bottom:17px;animation-delay:1.1s}
+.topic-picker-die{position:absolute;top:34px;left:77px;display:grid;place-items:center;width:78px;height:78px;border:1px solid rgba(219,255,250,.62);border-radius:23px;background:linear-gradient(145deg,#59e5c4,#18a9a9 58%,#6863d8);box-shadow:0 16px 40px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.4);color:#fff;font-size:37px;transform:rotate(-9deg);animation:topicDieFloat 3s ease-in-out infinite}
+@keyframes topicDieFloat{50%{transform:rotate(3deg) translateY(-7px)}}
+@keyframes topicSparkle{to{opacity:.35;transform:scale(.75)}}
+.topic-picker-identity{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:11px 12px;border:1px solid rgba(220,227,255,.13);border-radius:15px;background:rgba(9,14,39,.32)}
+.topic-picker-identity-icon{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:11px;background:rgba(109,220,184,.13);color:#a5f1d4;font-size:15px}
+.topic-picker-identity-label{display:block;color:#94b2aa;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.topic-picker-identity-name{display:block;margin-top:2px;color:#f4fffb;font-size:13px;font-weight:850}
+.topic-picker-form{padding:16px;border:1px solid rgba(220,227,255,.18);border-radius:19px;background:rgba(10,17,42,.43);box-shadow:0 16px 38px rgba(0,0,0,.18)}
+.topic-picker-ready{margin:0 0 12px;color:#d8e6ff;font-size:12px;font-weight:800;line-height:1.5}
+.topic-picker-form label{display:block;margin:0 0 7px;color:#d4e5e0;font-size:11px;font-weight:800}
+.topic-picker-form input{width:100%;height:48px;padding:0 13px;border:1px solid rgba(203,213,255,.24);border-radius:12px;outline:none;background:rgba(255,255,255,.07);color:#fff;font:inherit;font-size:15px;transition:border-color .18s,box-shadow .18s}
+.topic-picker-form input::placeholder{color:#a3afca}
+.topic-picker-form input:focus{border-color:#75e8d0;box-shadow:0 0 0 3px rgba(117,232,208,.16)}
+.topic-picker-submit{display:flex;justify-content:center;align-items:center;gap:9px;width:100%;min-height:50px;margin-top:11px;padding:11px 14px;border:0;border-radius:12px;background:linear-gradient(100deg,#83f0cc,#76d9f2 54%,#a7a0ff);color:#10213e;font-weight:900;font-size:13px;box-shadow:0 8px 22px rgba(74,203,210,.22);cursor:pointer;transition:transform .18s,filter .18s,opacity .18s}
+.topic-picker-submit:not(:disabled):hover{transform:translateY(-2px);filter:brightness(1.06)}
+.topic-picker-submit:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
+.topic-picker-submit .arrow{font-size:17px;line-height:1}
+.topic-picker-status{display:flex;align-items:flex-start;gap:8px;min-height:34px;margin:10px 1px 0;color:#c6d2ec;font-size:10px;line-height:1.5}
+.topic-picker-status::before{content:"i";display:grid;place-items:center;width:15px;height:15px;flex:none;margin-top:1px;border:1px solid rgba(198,213,255,.55);border-radius:50%;color:#c9e6ff;font-size:9px;font-weight:900}
+.topic-picker-status[data-state="error"]{color:#ffb1ad}
+.topic-picker-status[data-state="success"]{color:#a9f1cf}
+.topic-picker-status[data-state="error"]::before{content:"!";border-color:#ff8b84;color:#ffaaa3}
+.topic-picker-status[data-state="success"]::before{content:"✓";border-color:#8ce4ba;color:#9cf0c4}
+.topic-picker-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+.topic-picker-step{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:start;gap:10px;min-width:0;padding:13px;border:1px solid rgba(202,213,255,.12);border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:inset 0 1px rgba(255,255,255,.04)}
+.topic-picker-step-number{display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(156,174,255,.19);border-radius:10px;background:linear-gradient(145deg,rgba(131,115,255,.28),rgba(89,229,196,.16));color:#ccf7ee;font-size:10px;font-weight:900}
+.topic-picker-step-copy{display:grid;gap:5px;min-width:0}
+.topic-picker-step b{display:block;margin:0;color:#f0f3ff;font-size:11px;line-height:1.35}
+.topic-picker-step-copy>span{display:block;margin:0;color:#bdc8e1;font-size:10px;line-height:1.5}
+.topic-picker-footnote{display:flex;align-items:flex-start;gap:8px;margin:13px 1px 0;color:#b2bfd9;font-size:9px;line-height:1.55}
+.topic-picker-footnote b{color:#c5d8d1}
+.topic-picker-result{position:relative;overflow:hidden;margin-top:14px;padding:clamp(18px,3vw,24px);border:1px solid rgba(128,244,218,.48);border-radius:19px;background:radial-gradient(ellipse at 100% 0,rgba(108,235,214,.19),transparent 50%),radial-gradient(ellipse at 0 100%,rgba(129,108,255,.16),transparent 45%),linear-gradient(135deg,rgba(25,57,91,.96),rgba(17,61,73,.96));box-shadow:0 16px 38px rgba(0,0,0,.2)}
+.topic-picker-result[hidden]{display:none}
+.topic-picker-result-top{display:flex;align-items:center;gap:9px;color:#aaf6de;font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.topic-picker-result-mark{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:rgba(118,230,184,.12);font-size:14px}
+.topic-picker-result-title{margin:11px 0 6px;color:#f5fbff;font-size:clamp(22px,3.5vw,32px);font-weight:950;line-height:1.2;overflow-wrap:anywhere;scroll-margin-block:35vh;outline:none}
+.topic-picker-result-meta{color:#c0d8e6;font-size:11px;line-height:1.55}
+@media(max-width:700px){.topic-picker{padding:18px;border-radius:22px}.topic-picker-layout{grid-template-columns:1fr;gap:16px;margin-top:18px}.topic-picker-copy{min-height:120px;padding-right:100px}.topic-picker-copy h2{font-size:30px}.topic-picker-copy>p{font-size:12px}.topic-picker-art{right:-2px;top:10px;width:94px;height:92px;opacity:.68}.topic-picker-die{top:22px;left:25px;width:46px;height:46px;border-radius:15px;font-size:24px}.topic-picker-art .orbit{inset:4px}.topic-picker-art .art-spark{font-size:11px}.topic-picker-steps{grid-template-columns:1fr;gap:8px;margin-top:13px}.topic-picker-step{padding:12px}.topic-picker-step-copy>span{font-size:11px}}
+@media(max-width:390px){.app{padding-right:11px;padding-left:11px}.topic-picker{padding:15px}.topic-picker-head{align-items:flex-start;gap:7px}.topic-picker-kicker,.topic-picker-round{min-height:27px;padding:6px 8px;font-size:8px}.topic-picker-round{white-space:nowrap}.topic-picker-copy{min-height:115px;padding-right:80px}.topic-picker-copy h2{font-size:27px}.topic-picker-art{right:-8px;opacity:.5}.topic-picker-form{padding:13px}.topic-picker-form input{font-size:16px}.topic-picker-step{grid-template-columns:29px minmax(0,1fr);gap:9px;padding:11px}.topic-picker-step-number{width:27px;height:27px}}
+@media(prefers-reduced-motion:reduce){.assignment-topic-result,.topic-picker-art .orbit,.topic-picker-art .art-spark,.topic-picker-die,.assignment-draw-animation.is-shuffling .assignment-draw-orbit,.assignment-draw-animation.is-shuffling .assignment-draw-card,.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(1),.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(2),.assignment-draw-animation.is-shuffling .assignment-draw-card:nth-child(3),.assignment-draw-animation.is-shuffling .assignment-draw-caption{animation:none}}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,680px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:rgba(7,26,25,.94);backdrop-filter:blur(16px);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;overflow:hidden;z-index:20}.bottom button{border:0;background:transparent;color:#90a9a4;padding:11px 3px 13px;font-size:9px}.bottom button.active{color:white;background:rgba(255,255,255,.055)}.bottom b{font-size:17px;display:block;margin-bottom:2px}
 @media(max-width:850px){.s5,.s7,.s12{grid-column:span 12}.app{padding:14px 12px 92px}.top{margin-bottom:15px}}
 @media(min-width:851px){.bottom{left:auto;right:18px;transform:none;width:440px}.hero{min-height:190px}.app{padding-bottom:90px}}
 
@@ -73,6 +129,31 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 .cs-modal{position:fixed;inset:0;background:rgba(0,0,0,.64);z-index:80;display:flex;align-items:flex-end;justify-content:center}.cs-modal.hidden{display:none}.cs-sheet{width:min(650px,100%);max-height:90vh;overflow:auto;background:#0d2927;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px}.cs-sheet-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.cs-sheet-head button{border:0;background:#173936;color:white;width:34px;height:34px;border-radius:50%}.cs-label{display:block;font-size:10px;color:#95aaa6;margin:12px 0 5px}.cs-input{width:100%;border:1px solid var(--line);background:#102f2c;color:white;border-radius:12px;padding:11px;font:inherit}.cs-anon{display:flex;align-items:center;gap:7px;font-size:11px;color:#aac0bb;margin:12px 0}.cs-anon input{width:auto}.cs-submit{width:100%;border:0;background:linear-gradient(135deg,#4fb8ae,#7762dd);color:white;border-radius:13px;padding:12px;font-weight:900}.cs-answer-list{display:grid;gap:8px;margin:12px 0;max-height:45vh;overflow:auto}.cs-answer{border:1px solid var(--line);border-radius:12px;padding:10px;background:#12332f}.cs-answer.admin{border-color:#d3ac4c;background:#302a1d}.cs-answer-author{font-size:9px;font-weight:900;color:#91aaa5}.cs-answer.admin .cs-answer-author{color:#ffd56c}.cs-answer-text{font-size:12px;margin-top:4px;line-height:1.45}
 @media(max-width:520px){.cs-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+.student-login-shell{width:min(480px,92vw);padding:clamp(20px,5vw,32px);border:1px solid rgba(170,190,255,.2);border-radius:26px;background:radial-gradient(ellipse at 92% 0,rgba(97,100,226,.2),transparent 36%),linear-gradient(145deg,#192b53,#15263c 58%,#123b49);box-shadow:0 24px 70px rgba(0,0,0,.32)}
+.student-login-brand{display:grid;justify-items:center;text-align:center;margin-bottom:22px}
+.student-login-mark{display:grid;place-items:center;width:58px;height:58px;border:1px solid rgba(212,224,255,.3);border-radius:19px;background:linear-gradient(145deg,#8b7bff,#41d4bd);box-shadow:0 12px 30px rgba(79,142,221,.24);font-size:28px}
+.student-login-brand h2{margin:14px 0 6px;font-size:26px;letter-spacing:-.03em}
+.student-login-brand p{max-width:365px;margin:0;color:#bdc9e2;font-size:12px;line-height:1.55}
+.student-login-field{display:block;margin:16px 0 7px;color:#e3eaff;font-size:11px;font-weight:850}
+.student-login-input{width:100%;height:50px;padding:0 14px;border:1px solid rgba(207,220,255,.22);border-radius:13px;outline:none;background:rgba(7,15,37,.58);color:#fff;font:inherit;font-size:16px}
+.student-login-input::placeholder{color:#8f9dbd}
+.student-login-input:focus{border-color:#75e8d0;box-shadow:0 0 0 3px rgba(117,232,208,.16)}
+.student-login-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:12px 13px;border:1px solid rgba(205,218,255,.15);border-radius:13px;background:rgba(255,255,255,.055)}
+.student-login-choice span{color:#aebcda;font-size:10px}
+.student-login-choice b{display:block;margin-top:3px;color:#f5f7ff;font-size:14px}
+.student-login-message{min-height:34px;margin:10px 1px;color:#bdc9e2;font-size:11px;line-height:1.5}
+.student-login-message[data-state="error"]{color:#ffb6ba}
+.student-login-note{margin-top:13px;color:#aab8d4;font-size:10px;line-height:1.55}
+.student-login-note b{color:#d7e1fb}
+.student-login-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px;margin-top:10px}
+.student-login-actions button{min-height:47px;border:1px solid rgba(208,220,255,.17);border-radius:12px;background:rgba(255,255,255,.06);color:#edf2ff;font-weight:850;cursor:pointer}
+.student-login-actions .student-login-submit{border:0;background:linear-gradient(100deg,#83f0cc,#76d9f2 54%,#a7a0ff);color:#10213e}
+.student-login-actions button:disabled{opacity:.55;cursor:wait}
+.student-choice-list{display:grid;gap:8px;max-height:min(44vh,440px);overflow:auto;padding-right:3px}
+.student-choice-list .choice{min-height:49px;padding:12px 14px;border-color:rgba(205,218,255,.14);background:rgba(255,255,255,.05);font-size:13px}
+.student-choice-list .choice:hover{border-color:rgba(120,232,213,.38);background:rgba(104,190,213,.12)}
+.student-login-shell[hidden],#studentLoginForm[hidden],#studentPicker[hidden]{display:none}
+@media(max-width:390px){.student-login-shell{padding:19px;border-radius:22px}.student-login-brand h2{font-size:24px}.student-login-choice{padding:11px}.student-choice-list .choice{min-height:50px}}
 
 .cs-home-link{border:0;background:transparent;color:#6dd7d3;font-size:11px;font-weight:850;padding:0}
 .cs-home-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -107,27 +188,30 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 </head>
 <body>
 <div id="chooser" class="loading" style="display:none">
- <div style="width:min(560px,92vw)">
-  <div style="font-size:40px">🎓</div>
-  <h2 style="margin:8px 0">Choose your name</h2>
-  <div class="small" style="margin-bottom:14px">Select your name, then enter the 4-digit code provided by the Class Rep.</div>
-  <input id="studentSearchBox" placeholder="Search your name…" style="width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#102d2b;color:white;margin-bottom:10px">
-  <div id="studentChoiceList" style="display:grid;gap:8px;max-height:55vh;overflow:auto"></div>
- </div>
-</div>
-
-<div id="studentCodeModal" class="cs-modal hidden">
- <div class="cs-sheet">
-  <div class="cs-sheet-head">
-   <div><b>Verify student</b><div id="studentCodeName" class="small"></div></div>
-   <button onclick="closeStudentCodeModal()">✕</button>
+ <section class="student-login-shell" aria-labelledby="studentLoginHeading">
+  <div class="student-login-brand">
+   <div class="student-login-mark" aria-hidden="true">🎓</div>
+   <h2 id="studentLoginHeading">Welcome to ClassPilot</h2>
+   <p>Choose your student profile and confirm your registration number to open your dashboard.</p>
   </div>
-  <input id="pendingPortalId" type="hidden">
-  <label class="cs-label">4-digit access code</label>
-  <input id="studentAccessCodeInput" class="cs-input" inputmode="numeric" maxlength="8" placeholder="Enter code">
-  <div id="studentCodeError" class="error" style="display:none;margin-top:9px"></div>
-  <button class="cs-submit" style="margin-top:12px" onclick="verifyStudentCode()">Continue</button>
- </div>
+  <div id="studentPicker">
+   <label class="student-login-field" for="studentSearchBox">Find your name</label>
+   <input id="studentSearchBox" class="student-login-input" placeholder="Search student name…" autocomplete="off">
+   <div id="studentChoiceList" class="student-choice-list" style="margin-top:10px" aria-label="Student profiles"></div>
+  </div>
+  <form id="studentLoginForm" hidden>
+   <button id="studentLoginBack" type="button" class="cs-home-link" onclick="backToStudentChoices()">← Choose a different name</button>
+   <div class="student-login-choice" style="margin-top:14px"><span>Signing in as<b id="studentLoginName"></b></span><span aria-hidden="true">✦</span></div>
+   <label class="student-login-field" for="studentLoginRegNo">Registration number</label>
+   <input id="studentLoginRegNo" class="student-login-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Enter your registration number" required>
+   <div id="studentLoginStatus" class="student-login-message" role="status" aria-live="polite">Use the number recorded by the Class Rep in Student Details.</div>
+   <div class="student-login-actions">
+    <button type="button" onclick="backToStudentChoices()">Back</button>
+    <button id="studentLoginSubmit" class="student-login-submit" type="submit">Open my dashboard <span aria-hidden="true">→</span></button>
+   </div>
+   <div class="student-login-note"><b>Privacy note:</b> a registration number is a basic check, not a password. Don’t share it; anyone who knows it may be able to open that profile.</div>
+  </form>
+ </section>
 </div>
 
 <div id="loading" class="loading"><div><div style="font-size:38px">🎓</div><b>Loading your ClassPilot…</b><div class="small">Read-only student view</div></div></div>
@@ -137,9 +221,49 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
  <div class="install-prompt-actions"><button onclick="dismissInstallPrompt()">Not now</button><button id="installNowButton" class="install-now" onclick="installStudentApp()">Install</button></div>
 </aside>
 <div id="app" class="app" style="display:none">
-<header class="top"><div class="hello"><div id="avatar" class="avatar">S</div><div><div class="eyebrow">Hello 👋 <span style="opacity:.55">· v10.8</span></div><div id="studentName" class="name">Student</div><div id="regNo" class="small"></div></div></div><div style="display:flex;gap:8px;align-items:center"><button onclick="changeStudent()" style="border:1px solid var(--line);background:rgba(255,255,255,.04);color:white;border-radius:999px;padding:8px 10px;font-size:10px">Change student</button><div class="live" id="portalStatus">● View only</div></div></header>
+<header class="top"><div class="hello"><div id="avatar" class="avatar">S</div><div><div class="eyebrow">Hello 👋 <span style="opacity:.55">· v10.11</span></div><div id="studentName" class="name">Student</div></div></div><div style="display:flex;gap:8px;align-items:center"><button onclick="changeStudent()" style="border:1px solid var(--line);background:rgba(255,255,255,.04);color:white;border-radius:999px;padding:8px 10px;font-size:10px">Change student</button><div class="live" id="portalStatus">● View only</div></div></header>
 <section id="home" class="page active">
  <div id="nextClassHero" class="hero"></div>
+ <section id="topicPicker" class="topic-picker" aria-labelledby="topicPickerTitle">
+  <div class="topic-picker-head">
+   <span class="topic-picker-kicker">✦ Assignment · Topic draw</span>
+   <span class="topic-picker-round">One topic per round</span>
+  </div>
+  <div class="topic-picker-layout">
+   <div class="topic-picker-copy">
+    <h2 id="topicPickerTitle">Ready for your <span>HISTORY AND SYSTEMS topic?</span></h2>
+    <p>Your student details are confirmed. When you are ready, draw a topic and it will be saved to your student record for this round.</p>
+    <div class="topic-picker-art" aria-hidden="true">
+     <div class="orbit"></div>
+     <span class="art-spark one">✦</span><span class="art-spark two">✧</span><span class="art-spark three">✦</span>
+     <div class="topic-picker-die">?</div>
+    </div>
+   </div>
+   <div>
+    <div class="topic-picker-form">
+     <p class="topic-picker-ready" id="topicPickerStudentName">Sign in to draw your topic.</p>
+     <button class="topic-picker-submit" id="assignmentDrawButton" onclick="confirmAndDrawAssignmentTopic()" disabled><span id="assignmentDrawButtonText">Check available topics</span><span class="arrow" aria-hidden="true">→</span></button>
+     <div id="assignmentDrawStatus" class="topic-picker-status" data-state="info" role="status" aria-live="polite">Sign in to load your topic draw.</div>
+    </div>
+   </div>
+  </div>
+  <div class="topic-picker-footnote"><span aria-hidden="true">ⓘ</span><span><b>Please note:</b> a registration number is a basic identity check, not a password. Keep it private. If your details are incorrect, ask the Class Rep to update Student Details and republish the portal.</span></div>
+  <div id="assignmentDrawAnimation" class="assignment-draw-animation hidden" role="status" aria-live="polite" aria-label="Shuffling topic cards while your draw is saved">
+   <div class="assignment-draw-orbit" aria-hidden="true"></div>
+   <div class="assignment-card-stack" aria-hidden="true"><div class="assignment-draw-card">✦</div><div class="assignment-draw-card">?</div><div class="assignment-draw-card">🎲</div></div>
+   <div class="assignment-draw-caption">Shuffling your topic cards…</div>
+  </div>
+  <div id="assignmentDrawResult" class="topic-picker-result assignment-topic-result" hidden aria-live="polite">
+   <div class="topic-picker-result-top"><span class="topic-picker-result-mark" aria-hidden="true">✦</span>Your topic is locked in</div>
+   <h3 id="assignmentTopicText" class="topic-picker-result-title" tabindex="-1"></h3>
+   <div id="assignmentTopicDate" class="topic-picker-result-meta"></div>
+  </div>
+  <div class="topic-picker-steps" aria-label="How to draw your topic">
+   <div class="topic-picker-step"><span class="topic-picker-step-number">01</span><span class="topic-picker-step-copy"><b>Select your name</b><span>Make sure it is your own student profile.</span></span></div>
+   <div class="topic-picker-step"><span class="topic-picker-step-number">02</span><span class="topic-picker-step-copy"><b>Confirm your number</b><span>Sign in with the registration number saved by the Class Rep.</span></span></div>
+   <div class="topic-picker-step"><span class="topic-picker-step-number">03</span><span class="topic-picker-step-copy"><b>Draw &amp; keep it</b><span>Your topic is locked for this round. No redraws.</span></span></div>
+  </div>
+ </section>
  <div class="section-head"><h2>Today's Classes</h2><span id="todayLabel"></span></div><div id="todayPeriods" class="period-row"></div>
  <div class="grid">
   <div class="s7"><div class="section-head"><h2>Important Deadlines</h2><span>Upcoming</span></div><div id="homeDeadlines" class="card"></div></div>
@@ -152,43 +276,10 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
     <div class="card"><div class="small">Loading ClassSpace…</div></div>
    </div>
   </div>
-    <div class="s5"><div class="section-head"><h2>Attendance</h2><span>Subject-wise</span></div><div id="homeAttendance" class="grid"></div></div>
 <div class="s12"><div class="section-head"><h2>Important Updates</h2><span>From the Class Rep</span></div><div id="homeNotices" class="card"></div></div>
  </div>
 </section>
 <section id="timetablePage" class="page"><div class="section-head"><h2>Weekly Timetable</h2><span>Swipe horizontally on mobile</span></div><div id="fullTimetable" class="tt-wrap"></div></section>
-<section id="attendancePage" class="page"><div class="section-head"><h2>My Attendance</h2><span>Current published record</span></div><div id="attendanceGrid" class="grid"></div></section>
-
-<section id="assignmentPage" class="page">
- <div class="section-head"><h2>🎲 Assignment Topic</h2><span>One topic per student</span></div>
- <div class="hero">
-  <div class="next-label">Your class assignment draw</div>
-  <div class="next-subject">Confirm your ID-card details</div>
-  <div class="next-faculty">Enter your full name and registration number exactly as shown on your college ID card. Your existing student portal verification is also required.</div>
-  <div class="grid" style="margin-top:18px">
-   <div class="s5"><label class="cs-label" for="assignmentIdentityName">Full name on ID card</label><input id="assignmentIdentityName" class="cs-input" type="text" autocomplete="name" placeholder="Your full name"></div>
-   <div class="s5"><label class="cs-label" for="assignmentIdentityRegNo">Registration number on ID card</label><input id="assignmentIdentityRegNo" class="cs-input" type="text" autocomplete="off" placeholder="Your registration number"></div>
-   <div class="s12"><button class="cs-submit" id="assignmentDrawButton" onclick="confirmAndDrawAssignmentTopic()">Verify identity &amp; draw my topic</button></div>
-  </div>
-  <div id="assignmentDrawStatus" class="small" role="status" aria-live="polite" style="margin-top:12px">Your details are checked against your verified student portal record.</div>
-  <div id="assignmentDrawAnimation" class="assignment-draw-animation hidden" role="status" aria-live="polite" aria-label="Drawing and locking a random assignment topic">
-   <div class="assignment-draw-orbit" aria-hidden="true"></div>
-   <div class="assignment-card-stack" aria-hidden="true">
-    <div class="assignment-draw-card">✦</div>
-    <div class="assignment-draw-card">?</div>
-    <div class="assignment-draw-card">🎲</div>
-   </div>
-   <div class="assignment-draw-caption">Shuffling your topic cards…</div>
-  </div>
-  <div id="assignmentDrawResult" class="card" style="display:none;margin-top:14px;border-color:#65cbb4">
-   <div class="next-label">Your assigned topic</div>
-   <div id="assignmentTopicText" class="next-subject"></div>
-   <div id="assignmentTopicDate" class="next-time"></div>
-  </div>
- </div>
- <div class="cs-field-note" style="margin-top:12px">Your assignment is stored against your verified student identity. Once issued, neither you nor another student can draw that topic again in this round.</div>
-</section>
-
 <section id="classSpacePage" class="page">
  <div class="section-head"><h2>ClassSpace</h2><span>Poll · Ask · Share · RSVP</span></div>
  <div class="cs-create card">
@@ -208,9 +299,7 @@ button{font:inherit}.app{max-width:1180px;margin:auto;padding:20px 18px 96px}.to
 </div>
 <nav id="bottom" class="bottom" style="display:none">
  <button class="active" data-page="home"><b>⌂</b>Home</button>
- <button data-page="assignmentPage"><b>🎲</b>Topic</button>
  <button data-page="timetablePage"><b>▦</b>Timetable</button>
- <button data-page="attendancePage"><b>◔</b>Attendance</button>
  <button data-page="classSpacePage"><b>✦</b>ClassSpace</button>
  <button data-page="deadlinePage"><b>◷</b>Deadlines</button>
 </nav>
@@ -324,12 +413,12 @@ const csAnswerPostId=document.getElementById("csAnswerPostId");
 const chooser=document.getElementById("chooser");
 const studentSearchBox=document.getElementById("studentSearchBox");
 const studentChoiceList=document.getElementById("studentChoiceList");
-const studentCodeModal=document.getElementById("studentCodeModal");
-const studentCodeName=document.getElementById("studentCodeName");
-const studentAccessCodeInput=document.getElementById("studentAccessCodeInput");
-const studentCodeError=document.getElementById("studentCodeError");
-const pendingPortalId=document.getElementById("pendingPortalId");
-
+const studentPicker=document.getElementById("studentPicker");
+const studentLoginForm=document.getElementById("studentLoginForm");
+const studentLoginName=document.getElementById("studentLoginName");
+const studentLoginRegNo=document.getElementById("studentLoginRegNo");
+const studentLoginStatus=document.getElementById("studentLoginStatus");
+const studentLoginSubmit=document.getElementById("studentLoginSubmit");
 const loading=document.getElementById("loading");
 const error=document.getElementById("error");
 const app=document.getElementById("app");
@@ -338,19 +427,22 @@ const portalStatus=document.getElementById("portalStatus");
 const classSpaceFeed=document.getElementById("classSpaceFeed");
 const csFeedStatus=document.getElementById("csFeedStatus");
 const homeClassSpaceFeed=document.getElementById("homeClassSpaceFeed");
-let selectedPortalId=localStorage.getItem("classpilot_student_portal_id")||"";let directory=[];
+const topicPickerStudentName=document.getElementById("topicPickerStudentName");
+const assignmentDrawButton=document.getElementById("assignmentDrawButton");
+const assignmentDrawButtonText=document.getElementById("assignmentDrawButtonText");
+const assignmentDrawStatus=document.getElementById("assignmentDrawStatus");
+const assignmentDrawResult=document.getElementById("assignmentDrawResult");
+let selectedPortalId=localStorage.getItem("classpilot_student_portal_id")||"";let directory=[];let pendingStudentEntry=null;
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function dayName(){return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()]}
 function currentHour(){const m=new Date().getHours()*60+new Date().getMinutes(),r=[[540,600],[600,660],[670,730],[730,790],[840,900],[900,960]];for(let i=0;i<r.length;i++)if(m>=r[i][0]&&m<r[i][1])return i;return -1}
 function showError(msg){loading.style.display="none";error.style.display="block";error.innerHTML=`<b>Student portal unavailable</b><div class="small" style="margin-top:7px">${esc(msg)}</div>`}
-function nav(id){if(id==="classSpacePage")loadClassSpace();if(id==="home")loadHomeClassSpace();if(id==="assignmentPage")loadPublishedAssignmentTopics();document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===id));scrollTo({top:0,behavior:"smooth"})}
+function nav(id){if(id==="classSpacePage")loadClassSpace();if(id==="home")loadHomeClassSpace();document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===id));scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.onclick=()=>nav(x.dataset.page));
-function render(refreshClassSpace=true){studentName.textContent=data.studentName||"Student";avatar.textContent=(data.studentName||"S").trim().charAt(0).toUpperCase();regNo.textContent=data.regNo?`Reg No. ${data.regNo}`:"";todayLabel.textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});renderToday();renderDeadlines();renderAttendance();renderNotices();renderTimetable();loading.style.display="none";app.style.display="block";bottom.style.display="grid";if(refreshClassSpace)loadHomeClassSpace()}
+function render(refreshClassSpace=true){studentName.textContent=data.studentName||"Student";avatar.textContent=(data.studentName||"S").trim().charAt(0).toUpperCase();topicPickerStudentName.textContent=`Welcome, ${data.studentName||"Student"}. Your topic is ready when you are.`;todayLabel.textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});renderToday();renderDeadlines();renderNotices();renderTimetable();loading.style.display="none";app.style.display="block";bottom.style.display="grid";if(refreshClassSpace){loadHomeClassSpace();loadPublishedAssignmentTopics()}}
 function renderToday(){const day=dayName(),today=data.timetable?.[day]||[],now=currentHour(),times=data.periodTiming||[];let pick=now>=0?now:0,c=today[pick]||{};nextClassHero.innerHTML=`<div class="next-label">${now>=0?"Now in class":"Today's schedule"}</div><div class="next-subject">${esc(c.subject||"No class scheduled")}</div><div class="next-faculty">${esc(c.faculty||"")}</div><div class="next-time">Hour ${pick+1} · ${esc(times[pick]||"")}</div>`;todayPeriods.innerHTML=[0,1,2,3,4,5].map(i=>`<div class="period ${i===now?"now":""}"><div class="h">H${i+1}</div><div style="font-size:10px;font-weight:800;margin-top:5px">${esc(today[i]?.subject||"—")}</div><div class="t">${esc(times[i]||"")}</div></div>`).join("")}
 function deadlineHtml(list,limit=99){const arr=list.slice(0,limit);if(!arr.length)return '<div class="empty">No upcoming deadlines 🎉</div>';return arr.map(x=>{let d=x.date?new Date(x.date+"T00:00:00"):null,day=d?String(d.getDate()).padStart(2,"0"):"—",mon=d?d.toLocaleDateString("en-IN",{month:"short"}):"";return `<div class="deadline"><div class="datebox">${day}<span>${mon}</span></div><div><b>${esc(x.title)}</b><div class="small">${esc(x.subject||"General")}${x.description?` · ${esc(x.description)}`:""}</div></div><span class="priority ${esc(x.priority)}">${esc(x.priority)}</span></div>`}).join("")}
 function renderDeadlines(){homeDeadlines.innerHTML=deadlineHtml(data.deadlines||[],4);allDeadlines.innerHTML=deadlineHtml(data.deadlines||[])}
-function attendanceCard(x){const pct=Number(x.percentage||0);return `<div class="att-card s12"><div class="att-top"><div><div class="card-title">${esc(x.subject)}</div><div class="small">${x.present}/${x.total} hours present</div></div><div class="pct">${pct.toFixed(1)}%</div></div><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><div class="stats"><span class="stat">Present <b>${x.present}</b></span><span class="stat">Absent <b>${x.absent}</b></span><span class="stat">Late <b>${x.late}</b></span><span class="stat">Excused <b>${x.excused}</b></span></div></div>`}
-function renderAttendance(){const a=data.attendance||[];homeAttendance.innerHTML=a.slice(0,3).map(attendanceCard).join("")||'<div class="empty s12">No attendance published yet.</div>';attendanceGrid.innerHTML=a.map(attendanceCard).join("")||'<div class="empty s12">No attendance published yet.</div>'}
 function noticesHtml(list){return list.length?list.map(n=>`<div class="notice"><div class="notice-cat">${esc(n.category)}</div><div class="notice-title">${esc(n.title)}</div><div class="notice-text">${esc(n.text)}</div></div>`).join(""):'<div class="empty">No important updates.</div>'}
 function renderNotices(){homeNotices.innerHTML=noticesHtml((data.notices||[]).slice(0,4));allNotices.innerHTML=noticesHtml(data.notices||[])}
 function renderTimetable(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],times=data.periodTiming||[],tt=data.timetable||{};let h='<div class="week"><div class="tt-cell tt-head tt-day">Day</div>'+times.map((t,i)=>`<div class="tt-cell tt-head">H${i+1}<div class="small">${esc(t)}</div></div>`).join("");days.forEach(day=>{h+=`<div class="tt-cell tt-day">${day}</div>`;for(let i=0;i<6;i++){const c=tt[day]?.[i]||{};h+=`<div class="tt-cell"><div class="tt-sub">${esc(c.subject||"—")}</div><div class="tt-fac">${esc(c.faculty||"")}</div></div>`}});h+='</div>';fullTimetable.innerHTML=h}
@@ -365,63 +457,106 @@ async function fetchDirectory(){
 function renderChoices(filter=""){
  const q=filter.trim().toLowerCase();
  const list=directory.filter(x=>x.name.toLowerCase().includes(q));
- studentChoiceList.innerHTML=list.map(x=>`<button class="choice" onclick="chooseStudent('${x.id}')"><span><span class="nm">${esc(x.name)}</span>${x.regNo?`<span class="rg"><br>Reg No. ${esc(x.regNo)}</span>`:""}</span><span>›</span></button>`).join("")||'<div class="small">No matching student.</div>';
+ studentChoiceList.innerHTML=list.map(x=>`<button class="choice" onclick="chooseStudent('${x.id}')"><span class="nm">${esc(x.name)}</span><span>›</span></button>`).join("")||'<div class="small">No matching student.</div>';
 }
 function chooseStudent(id){
  const entry=directory.find(x=>x.id===id);
- if(entry?.name.trim().toLowerCase()==="joyal jose"){
-   window.location.assign("./");
+ if(!entry)return;
+ pendingStudentEntry=entry;
+ studentLoginName.textContent=entry.name;
+ studentLoginRegNo.value="";
+ studentLoginStatus.textContent="Use the number recorded by the Class Rep in Student Details.";
+ studentLoginStatus.dataset.state="info";
+ studentPicker.hidden=true;
+ studentLoginForm.hidden=false;
+ studentLoginRegNo.focus();
+}
+function backToStudentChoices(){
+ pendingStudentEntry=null;
+ studentLoginRegNo.value="";
+ studentLoginForm.hidden=true;
+ studentPicker.hidden=false;
+ studentSearchBox.focus();
+}
+async function authenticateStudent(event){
+ event.preventDefault();
+ if(!pendingStudentEntry)return;
+ const regNo=normalizeIdentityRegNo(studentLoginRegNo.value);
+ if(!regNo){
+   studentLoginStatus.textContent="Enter your registration number to continue.";
+   studentLoginStatus.dataset.state="error";
+   studentLoginRegNo.focus();
    return;
  }
- pendingPortalId.value=id;
- studentCodeName.textContent=entry?.name||"Student";
- studentAccessCodeInput.value="";
- studentCodeError.style.display="none";
- studentCodeModal.classList.remove("hidden");
- setTimeout(()=>studentAccessCodeInput.focus(),50);
-}
-function closeStudentCodeModal(){
- studentCodeModal.classList.add("hidden");
-}
-async function verifyStudentCode(){
- const id=pendingPortalId.value;
- const code=studentAccessCodeInput.value.trim();
- if(!id||!code)return;
- if(!await ensureClassSpaceAuth())return;
-
- studentCodeError.style.display="none";
-
+ studentLoginSubmit.disabled=true;
+ studentLoginStatus.textContent="Checking your student details…";
+ studentLoginStatus.dataset.state="info";
  try{
-   const ref=db.collection("studentSessions").doc(auth.currentUser.uid);
-   await ref.set({
+   if(!await ensureClassSpaceAuth())return;
+   await db.collection("studentSessions").doc(auth.currentUser.uid).set({
      ownerUid:auth.currentUser.uid,
-     portalId:id,
-     accessCode:code,
-     verifiedAtMs:Date.now()
+     portalId:pendingStudentEntry.id,
+     regNo,
+     selectedAtMs:Date.now()
    });
-
-   selectedPortalId=id;
-   localStorage.setItem("classpilot_student_portal_id",id);
-   localStorage.setItem("classpilot_student_verified","1");
-   closeStudentCodeModal();
+   selectedPortalId=pendingStudentEntry.id;
+   data=null;
+   assignmentTopicRound=null;
+   assignmentDrawButton.dataset.busy="false";
+   assignmentDrawButton.disabled=true;
+   assignmentDrawButtonText.textContent="Loading available topics";
+   assignmentDrawResult.hidden=true;
+   topicPickerStudentName.textContent=`Welcome, ${pendingStudentEntry.name}. Your topic is ready when you are.`;
+   setAssignmentDrawStatus("Login confirmed. Checking whether a topic draw is open…","info");
+   localStorage.setItem("classpilot_student_portal_id",pendingStudentEntry.id);
+   localStorage.removeItem("classpilot_student_verified");
+   studentLoginForm.hidden=true;
    chooser.style.display="none";
    loading.style.display="grid";
    await loadPortalData(true);
  }catch(e){
-   console.warn("Student verification failed",e);
-   studentCodeError.style.display="block";
-   studentCodeError.textContent=e.code==="permission-denied"
-    ?"Incorrect access code. Ask the Class Rep for your current code."
-     : e.message;
+   console.warn("Student registration-number check failed",e);
+   studentLoginStatus.textContent=e.code==="permission-denied"
+     ?"The name and registration number did not match, or the updated Firestore rules have not been deployed. Check with the Class Rep."
+     :"We couldn't sign you in. Please try again.";
+   studentLoginStatus.dataset.state="error";
+   studentLoginRegNo.select();
+ }finally{
+   studentLoginSubmit.disabled=false;
  }
 }
-function changeStudent(){
+async function changeStudent(){
+ if(auth.currentUser){
+   try{
+     await db.collection("studentSessions").doc(auth.currentUser.uid).delete();
+   }catch(error){
+     console.error("Could not clear the verified student session",error);
+     alert("Could not securely sign out this student profile. Check your connection and try again.");
+     return;
+   }
+ }
  if(portalUnsubscribe){portalUnsubscribe();portalUnsubscribe=null}
  localStorage.removeItem("classpilot_student_portal_id");
  localStorage.removeItem("classpilot_student_verified");
  selectedPortalId="";
+ pendingStudentEntry=null;
+ data=null;
+ assignmentTopicRound=null;
+ assignmentDrawButton.dataset.busy="false";
+ assignmentDrawButton.disabled=true;
+ assignmentDrawButtonText.textContent="Sign in to continue";
+ assignmentDrawResult.hidden=true;
+ setAssignmentDrawStatus("Sign in to load your topic draw.","info");
+ topicPickerStudentName.textContent="Sign in to draw your topic.";
+ setAssignmentDrawAnimation(false);
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById("home").classList.add("active");
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page==="home"));
  app.style.display="none";bottom.style.display="none";error.style.display="none";
  chooser.style.display="grid";
+ studentLoginForm.hidden=true;
+ studentPicker.hidden=false;
+ studentSearchBox.value="";
  renderChoices();
 }
 function loadPortalData(showErrors=true){
@@ -459,8 +594,16 @@ function loadPortalData(showErrors=true){
 
 let classSpacePosts=[],classSpaceTimer=null;
 function selectedStudentName(){return data?.studentName||""}
-function normalizeIdentityName(value){return String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase()}
 function normalizeIdentityRegNo(value){return String(value||"").replace(/\s+/g,"").toLocaleUpperCase()}
+function setAssignmentDrawStatus(message,state="info"){
+ assignmentDrawStatus.textContent=message;
+ assignmentDrawStatus.dataset.state=state;
+}
+function updateAssignmentDrawButton(){
+ const busy=assignmentDrawButton.dataset.busy==="true";
+ assignmentDrawButton.disabled=busy||!data||!assignmentTopicRound;
+ if(!busy)assignmentDrawButtonText.textContent=assignmentTopicRound?"Draw my topic":"Loading available topics";
+}
 function setAssignmentDrawAnimation(active,caption){
  const animation=document.getElementById("assignmentDrawAnimation");
  animation.classList.toggle("hidden",!active);
@@ -468,56 +611,52 @@ function setAssignmentDrawAnimation(active,caption){
  if(caption)animation.querySelector(".assignment-draw-caption").textContent=caption;
 }
 async function loadPublishedAssignmentTopics(){
- const status=document.getElementById("assignmentDrawStatus");
- const button=document.getElementById("assignmentDrawButton");
- const result=document.getElementById("assignmentDrawResult");
- result.style.display="none";button.disabled=true;assignmentTopicRound=null;
- if(!data||!selectedPortalId){status.textContent="Verify your student portal identity before drawing a topic.";return}
- if(!data.regNo){status.textContent="Your registration number is not on your student portal record. Ask the Class Rep to update it.";return}
- status.textContent="Checking the published topic pool…";
+ assignmentDrawResult.hidden=true;assignmentTopicRound=null;updateAssignmentDrawButton();
+ if(!data||!selectedPortalId){setAssignmentDrawStatus("Sign in to load your student portal and topic draw.","info");return}
+ if(!String(data.studentName||"").trim()||!normalizeIdentityRegNo(data.regNo)){
+   setAssignmentDrawStatus("Your registration number is missing from Student Details. Ask the Class Rep to update it and republish the portal.","error");
+   assignmentDrawButtonText.textContent="Registration number needed";
+   return;
+ }
+ setAssignmentDrawStatus("Checking whether a topic draw is open…","info");
  try{
-   if(!await ensureClassSpaceAuth())throw new Error("Student sign-in is unavailable.");
+   if(!await ensureClassSpaceAuth())throw new Error("Student portal sign-in is unavailable.");
    const session=await db.collection("studentSessions").doc(auth.currentUser.uid).get();
-   if(!session.exists||session.data().portalId!==selectedPortalId)throw new Error("Your student verification has expired. Use Change student and verify again.");
+   if(!session.exists||session.data().portalId!==selectedPortalId||normalizeIdentityRegNo(session.data().regNo)!==normalizeIdentityRegNo(data.regNo))
+     throw new Error("Your student login session is unavailable. Sign in again.");
    const pool=await db.collection("assignmentTopicPools").doc("current").get();
-   if(!pool.exists||!pool.data().roundId){status.textContent="The Class Rep has not published an assignment topic round yet.";return}
+   if(!pool.exists||!pool.data().roundId){setAssignmentDrawStatus("The topic draw is not open yet. Check back after the Class Rep publishes a round.","info");assignmentDrawButtonText.textContent="Draw not open yet";return}
    const roundId=String(pool.data().roundId);
    const round=await db.collection("assignmentTopicPools").doc("current").collection("rounds").doc(roundId).get();
-   if(!round.exists){status.textContent="The published topic round is unavailable. Ask the Class Rep to publish it again.";return}
+   if(!round.exists){setAssignmentDrawStatus("This topic round is unavailable. Ask the Class Rep to republish it.","error");assignmentDrawButtonText.textContent="Round unavailable";return}
    const roundData=round.data();
-   if(!Array.isArray(roundData.topicIds)||!roundData.topicIds.length){status.textContent="No topics are available in the current round.";return}
+   if(!Array.isArray(roundData.topicIds)||!roundData.topicIds.length){setAssignmentDrawStatus("There are no topics in this round yet. Ask the Class Rep to update the topic list.","info");assignmentDrawButtonText.textContent="No topics available";return}
    assignmentTopicRound={id:roundId,topicIds:roundData.topicIds,topicTitles:roundData.topicTitles||{}};
-   button.disabled=false;
-   status.textContent="Enter your ID-card name and registration number to confirm your identity.";
+   updateAssignmentDrawButton();
+   setAssignmentDrawStatus("Your student details are confirmed. Draw once to lock your topic for this round.","info");
  }catch(error){
    console.error("Could not load assignment topic pool",error);
-   status.textContent=error.code==="permission-denied"
-     ?"The draw database rules are not enabled. Ask the Class Rep to deploy the updated Firestore rules."
-     :`Could not load the topic pool: ${error.message}`;
+   setAssignmentDrawStatus(error.code==="permission-denied"
+     ?"The topic draw is not available yet. Ask the Class Rep to deploy the updated Firestore rules."
+     :`We couldn't load the topic draw: ${error.message}`,"error");
+   assignmentDrawButtonText.textContent="Topic draw unavailable";
  }
 }
 async function confirmAndDrawAssignmentTopic(){
- const status=document.getElementById("assignmentDrawStatus");
- const button=document.getElementById("assignmentDrawButton");
- const typedName=document.getElementById("assignmentIdentityName").value;
- const typedRegNo=document.getElementById("assignmentIdentityRegNo").value;
  if(!assignmentTopicRound){await loadPublishedAssignmentTopics();if(!assignmentTopicRound)return}
- if(!normalizeIdentityName(data?.studentName)||!normalizeIdentityRegNo(data?.regNo)){
-   status.textContent="Your student identity record is incomplete. Ask the Class Rep to update your name and registration number.";
-   return;
- }
- if(normalizeIdentityName(typedName)!==normalizeIdentityName(data.studentName)
-   ||normalizeIdentityRegNo(typedRegNo)!==normalizeIdentityRegNo(data.regNo)){
-   status.textContent="Those details do not match your verified student record. Check your ID card and try again.";
-   document.getElementById("assignmentDrawResult").style.display="none";
+ if(!String(data?.studentName||"").trim()||!normalizeIdentityRegNo(data?.regNo)){
+   setAssignmentDrawStatus("Your registration number is missing from Student Details. Ask the Class Rep to update it and republish the portal.","error");
+   assignmentDrawButtonText.textContent="Registration number needed";
    return;
  }
  if(!await ensureClassSpaceAuth())return;
- button.disabled=true;status.textContent="Your identity is verified. Drawing and locking a unique topic…";
+ assignmentDrawButton.dataset.busy="true";assignmentDrawButton.disabled=true;assignmentDrawButtonText.textContent="Drawing your topic…";
+ setAssignmentDrawStatus("Your topic is being drawn and saved now…","info");
  setAssignmentDrawAnimation(true,"Shuffling your topic cards…");
  try{
    const session=await db.collection("studentSessions").doc(auth.currentUser.uid).get();
-   if(!session.exists||session.data().portalId!==selectedPortalId)throw new Error("Your student verification has expired. Use Change student and verify again.");
+   if(!session.exists||session.data().portalId!==selectedPortalId||normalizeIdentityRegNo(session.data().regNo)!==normalizeIdentityRegNo(data.regNo))
+     throw new Error("Your student login session is unavailable. Sign in again.");
    const poolRef=db.collection("assignmentTopicPools").doc("current");
    const roundRef=poolRef.collection("rounds").doc(assignmentTopicRound.id);
    const drawRef=roundRef.collection("draws").doc(selectedPortalId);
@@ -561,18 +700,31 @@ async function confirmAndDrawAssignmentTopic(){
    setAssignmentDrawAnimation(false);
    document.getElementById("assignmentTopicText").textContent=assignment.topic;
    document.getElementById("assignmentTopicDate").textContent=`Assigned to ${assignment.studentName} · ${new Date(assignment.drawnAtMs).toLocaleString()}`;
-   document.getElementById("assignmentDrawResult").style.display="block";
-   document.getElementById("assignmentDrawResult").classList.remove("assignment-topic-result");
-   requestAnimationFrame(()=>document.getElementById("assignmentDrawResult").classList.add("assignment-topic-result"));
-   status.textContent="Your topic is locked to your verified student account. You cannot draw another topic this round.";
-   button.textContent="Topic already assigned";
+   assignmentDrawResult.hidden=false;
+   assignmentDrawResult.classList.remove("assignment-topic-result");
+   void assignmentDrawResult.offsetWidth;
+   assignmentDrawResult.classList.add("assignment-topic-result");
+   requestAnimationFrame(()=>{
+     const topicTitle=document.getElementById("assignmentTopicText");
+     topicTitle.focus({preventScroll:true});
+     topicTitle.scrollIntoView({
+       behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",
+       block:"center",
+       inline:"nearest"
+     });
+   });
+   setAssignmentDrawStatus(`Your topic is locked to ${assignment.studentName} for this round. Keep it safe!`,"success");
+   assignmentDrawButton.dataset.busy="false";
+   assignmentDrawButton.disabled=true;
+   assignmentDrawButtonText.textContent="Topic locked for this round";
  }catch(error){
    setAssignmentDrawAnimation(false);
    console.error("Assignment topic draw failed",error);
-   status.textContent=error.code==="permission-denied"
-     ?"The database rejected this draw. Confirm that the updated Firestore rules are deployed and that you verified the correct student."
-     :error.message;
-   button.disabled=false;
+   setAssignmentDrawStatus(error.code==="permission-denied"
+     ?"The database rejected this draw. Check your student login, then ask the Class Rep to deploy the updated Firestore rules and publish student details."
+     :error.message,"error");
+   assignmentDrawButton.dataset.busy="false";
+   updateAssignmentDrawButton();
  }
 }
 async function ensureClassSpaceAuth(){
@@ -869,27 +1021,26 @@ async function init(){
  try{
    await fetchDirectory();
    studentSearchBox.addEventListener("input",()=>renderChoices(studentSearchBox.value));
+   studentLoginForm.addEventListener("submit",authenticateStudent);
+   assignmentDrawButton.dataset.busy="false";
    if(selectedPortalId){
      const valid=directory.some(x=>x.id===selectedPortalId);
-     const locallyVerified=localStorage.getItem("classpilot_student_verified")==="1";
-     if(valid && locallyVerified){
-       await ensureClassSpaceAuth();
-       try{
-         const ss=await db.collection("studentSessions").doc(auth.currentUser.uid).get();
-         if(ss.exists && ss.data().portalId===selectedPortalId){
-           await loadPortalData(true);
-         }else{
-           localStorage.removeItem("classpilot_student_verified");
-           selectedPortalId="";
-           loading.style.display="none";
-           chooser.style.display="grid";
-           renderChoices();
-         }
-       }catch(e){
+     if(valid){
+       if(!await ensureClassSpaceAuth())throw new Error("Student portal sign-in is unavailable.");
+       const session=await db.collection("studentSessions").doc(auth.currentUser.uid).get();
+       if(session.exists
+         &&session.data().portalId===selectedPortalId
+         &&normalizeIdentityRegNo(session.data().regNo)){
+         localStorage.removeItem("classpilot_student_verified");
+         await loadPortalData(true);
+       }else{
+         localStorage.removeItem("classpilot_student_portal_id");
          localStorage.removeItem("classpilot_student_verified");
          selectedPortalId="";
          loading.style.display="none";
          chooser.style.display="grid";
+         studentPicker.hidden=false;
+         studentLoginForm.hidden=true;
          renderChoices();
        }
      }else{
@@ -898,11 +1049,15 @@ async function init(){
        selectedPortalId="";
        loading.style.display="none";
        chooser.style.display="grid";
+       studentPicker.hidden=false;
+       studentLoginForm.hidden=true;
        renderChoices();
      }
    }else{
      loading.style.display="none";
      chooser.style.display="grid";
+     studentPicker.hidden=false;
+     studentLoginForm.hidden=true;
      renderChoices();
    }
   await ensureClassSpaceAuth();classSpaceTimer=setInterval(()=>{

@@ -4,15 +4,9 @@ service cloud.firestore {
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    // Read-only student portal records. A student can read only the portal
-    // assigned to their verified Firebase session.
+    // Read-only portal records for the student verified in this anonymous session.
     match /studentPortals/{portalId} {
-      allow get: if isClassAdmin()
-        || (
-          request.auth != null
-          && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
-          && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId == portalId
-        );
+      allow get: if isClassAdmin() || isSelectedStudent(portalId);
       allow list: if false;
       allow create: if request.auth != null
                     && request.resource.data.ownerUid == request.auth.uid;
@@ -31,43 +25,47 @@ service cloud.firestore {
     }
 
 
-    // Private per-student access codes. Only the ClassPilot owner can read/write.
+    // Legacy access-code documents remain admin-only while old records are removed.
     match /studentPortalSecrets/{portalId} {
       allow read, write: if isClassAdmin();
     }
 
-    // Per-browser/session student verification.
-    // The create/update succeeds only when the supplied code matches the
-    // protected code for the selected student portal.
+    // A student session is created only when the submitted registration number matches the portal record.
     match /studentSessions/{userId} {
       allow read: if request.auth != null
                   && request.auth.uid == userId;
 
       allow create, update: if request.auth != null
         && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['ownerUid', 'portalId', 'regNo', 'selectedAtMs'])
+        && request.resource.data.keys().hasAll(['ownerUid', 'portalId', 'regNo', 'selectedAtMs'])
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.portalId is string
-        && request.resource.data.accessCode
-           == get(/databases/$(database)/documents/studentPortalSecrets/$(request.resource.data.portalId)).data.accessCode;
+        && request.resource.data.regNo is string
+        && request.resource.data.regNo.size() > 0
+        && request.resource.data.selectedAtMs is int
+        && exists(/databases/$(database)/documents/studentPortals/$(request.resource.data.portalId))
+        && get(/databases/$(database)/documents/studentPortals/$(request.resource.data.portalId)).data.regNo is string
+        && request.resource.data.regNo == get(/databases/$(database)/documents/studentPortals/$(request.resource.data.portalId)).data.regNo;
 
       allow delete: if request.auth != null
                     && (request.auth.uid == userId || isClassAdmin());
     }
 
-    function hasVerifiedStudentSession() {
+    function hasSelectedStudentSession() {
       return request.auth != null
         && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
-        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId is string;
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId is string
+        && isSelectedStudent(get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId);
     }
 
-    function verifiedPortalId() {
+    function selectedStudentPortalId() {
       return get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId;
     }
 
-    // Topic locks are anonymous to students; assignment records are private to
-    // their verified student and listable only by the ClassPilot admin.
+    // Topic locks are transaction-bound; assignment records are listable only by the admin.
     match /assignmentTopicPools/{poolId} {
-      allow get: if poolId == "current" && (isClassAdmin() || hasVerifiedStudentSession());
+      allow get: if poolId == "current" && (isClassAdmin() || hasSelectedStudentSession());
       allow list: if false;
       allow create, update: if poolId == "current"
         && isClassAdmin()
@@ -84,7 +82,7 @@ service cloud.firestore {
 
       match /rounds/{roundId} {
         allow get: if isClassAdmin()
-          || (hasVerifiedStudentSession()
+          || (hasSelectedStudentSession()
             && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId);
         allow list: if isClassAdmin();
         allow create: if isClassAdmin()
@@ -99,25 +97,25 @@ service cloud.firestore {
 
         match /locks/{topicId} {
           allow get: if isClassAdmin()
-            || (hasVerifiedStudentSession()
+            || (hasSelectedStudentSession()
               && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId);
           allow list: if false;
-          allow create: if hasVerifiedStudentSession()
+          allow create: if hasSelectedStudentSession()
             && request.resource.data.keys().hasOnly(['roundId', 'topicId'])
             && request.resource.data.roundId == roundId
             && request.resource.data.topicId == topicId
             && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId
             && get(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)).data.topicIds.hasAny([topicId])
-            && !exists(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId()))
-            && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId()))
-            && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId())).data.topicId == topicId;
+            && !exists(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(selectedStudentPortalId()))
+            && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(selectedStudentPortalId()))
+            && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(selectedStudentPortalId())).data.topicId == topicId;
           allow update, delete: if false;
         }
 
         match /draws/{portalId} {
-          allow get: if isClassAdmin() || isCurrentStudent(portalId);
+          allow get: if isClassAdmin() || isSelectedStudent(portalId);
           allow list: if isClassAdmin();
-          allow create: if isCurrentStudent(portalId)
+          allow create: if isSelectedStudent(portalId)
             && request.resource.data.keys().hasOnly(['ownerUid', 'portalId', 'roundId', 'topicId', 'topic', 'studentName', 'regNo', 'drawnAtMs'])
             && request.resource.data.keys().hasAll(['ownerUid', 'portalId', 'roundId', 'topicId', 'topic', 'studentName', 'regNo', 'drawnAtMs'])
             && request.resource.data.ownerUid == request.auth.uid
@@ -147,10 +145,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/studentPortalDirectory/current).data.ownerUid == request.auth.uid;
     }
 
-    function isCurrentStudent(portalId) {
+    function isSelectedStudent(portalId) {
       return request.auth != null
         && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
-        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId == portalId;
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId == portalId
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.regNo is string
+        && get(/databases/$(database)/documents/studentPortals/$(portalId)).data.regNo is string
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.regNo
+          == get(/databases/$(database)/documents/studentPortals/$(portalId)).data.regNo;
     }
 
     // Shared ClassSpace interaction feed.
@@ -198,10 +200,10 @@ service cloud.firestore {
       // Private voter identity. The document key is the student portal ID,
       // allowing multiple selected students on one device to vote separately.
       match /voteIdentities/{portalId} {
-        allow get: if isClassAdmin() || isCurrentStudent(portalId);
+        allow get: if isClassAdmin() || isSelectedStudent(portalId);
         allow list: if isClassAdmin();
 
-        allow create, update: if isClassAdmin() || (isCurrentStudent(portalId)
+        allow create, update: if isClassAdmin() || (isSelectedStudent(portalId)
           && request.resource.data.ownerUid == request.auth.uid
           && request.resource.data.portalId == portalId
           && request.resource.data.voteId is string

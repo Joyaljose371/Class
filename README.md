@@ -14,7 +14,7 @@ This build is offline-first and installable.
 7. On Android/Chrome or supported desktop browsers use **Install App** / **Add to Home screen**.
 
 ## Running locally
-Do not open `index.html` or `student.html` directly as a `file://` URL. Browsers block the PWA manifest in that context, and Firebase features require a web origin. Instead, serve this folder over HTTP, for example with the VS Code Live Server extension, and open its `http://localhost:...` URL. For full student authentication, add the local hostname to Firebase Authentication → Settings → Authorized domains if Firebase requests it.
+Do not open `index.html` or `student.html` directly as a `file://` URL. Browsers block the PWA manifest in that context, and Firebase features require a web origin. Instead, serve this folder over HTTP, for example with the VS Code Live Server extension, and open its `http://localhost:...` URL. For student portal/ClassSpace access, enable Anonymous sign-in in Firebase Authentication. If Firebase reports `auth/unauthorized-domain`, add the local hostname under Authentication → Settings → Authorized domains.
 
 ## How data works
 - Every edit is written to local browser storage immediately.
@@ -48,9 +48,8 @@ Published data contains only:
 - Weekly timetable
 - Upcoming whole-class deadlines
 - Important notices
-- That student's subject-wise attendance totals and percentages
 
-It does NOT publish DOB, phone, admission number, private notes, other students, raw attendance, admin controls, groups, backups, or Firebase account details.
+It does NOT publish DOB, phone, admission number, private notes, attendance, admin controls, groups, backups, or Firebase account details.
 
 Deploy after updating:
 `firebase deploy --only firestore:rules,hosting`
@@ -60,7 +59,7 @@ Deploy after updating:
 The read-only student page now refreshes its published Firestore document every 10 seconds and when the tab regains focus, instead of using a persistent Firestore `onSnapshot()` WebChannel listener. This avoids `Listen/channel ... 400` errors seen in some localhost/Live Server and mobile environments.
 
 
-### v9.2 Single shared student link
+### v9.2 Single shared student link (login flow superseded by v10.11)
 All students now use the same `/student.html` URL.
 
 First visit:
@@ -74,8 +73,9 @@ A **Change student** button clears the saved selection.
 Admin → Settings → Student View Portal now provides:
 - Publish / Update All
 - Copy Shared Link
+- Set student registration numbers in Admin → Students → Student Details before publishing if they need to draw assignment topics.
 
-Privacy note: the shared name-picker lists student names and optional registration numbers. A selection alone does not grant access: the private student access code must be verified before the student's portal data or assignment draw is available. Keep access codes private.
+In v10.11, students must also submit the selected student's registration number before the portal record can be read. The number check is not secure authentication; do not rely on it to protect sensitive information.
 
 
 ## v10 — ClassSpace
@@ -176,7 +176,9 @@ Deploy updated Hosting + Firestore rules:
 `firebase deploy --only firestore:rules,hosting`
 
 
-## v10.6 — Student access codes + Firebase auth diagnostics
+## v10.6 — Student access codes + Firebase auth diagnostics (retired in v10.10)
+
+The access-code flow described below was retired in v10.10. Student portal data and topic draws no longer require a Rep-issued code.
 
 ### Student identity protection
 - One shared `/student.html` link remains.
@@ -236,12 +238,35 @@ This is a Hosting-only UI fix:
 `firebase deploy --only hosting`
 
 
-## v10.9 — Verified assignment topic draws
-The admin Topic Roulette page now publishes assignment topics to the shared student portal. Students must already have verified their portal with their private access code, then confirm the name and registration number on their ID card before drawing.
+## v10.9 — Verified assignment topic draws (access-code step retired in v10.10)
+The admin Topic Roulette page publishes assignment topics to the shared student portal. The original verified flow has been replaced by the public name-selection and registration-number confirmation flow documented below.
 
-Each verified student receives one topic per published round. Firestore transactions create a student assignment and a topic lock together, so concurrent draws cannot assign one topic to two students. The admin can view assignments for the active round. Publishing a new round makes the topics available again; old round records remain in Firestore.
+Each student record receives one topic per published round. Firestore transactions create a student assignment and a topic lock together, so concurrent draws cannot assign one topic to two students. The admin can view assignments for the active round. Publishing a new round makes the topics available again; old round records remain in Firestore.
 
 Before students draw, add each participant's registration number under Admin → Students → Student Details, publish/update the student portals, upload or enter the topic list under Admin → Topic Roulette, and publish the round.
 
 Deploy both the updated Firestore rules and pages:
+`firebase deploy --only firestore:rules,hosting`
+
+
+## v10.10 — Open student portal, register-number topic draw, and no student attendance (superseded by v10.11)
+- Students select their name from the shared portal; no Rep-issued access code is needed.
+- In v10.10, students entered the registration number immediately before drawing. The v10.11 login now requires it before opening the dashboard.
+- Each student portal ID receives at most one topic per round. Firestore transactions still create the immutable student assignment and unique topic lock atomically.
+- **This is not identity verification.** Anyone with the shared URL can select another student; a registration number check against published data does not prevent impersonation. Do not rely on this flow for sensitive data or high-stakes assignment allocation.
+- Student attendance is removed from the student dashboard and is no longer included in published student portal data. Admin attendance records and reports are unchanged. Republish student portals to remove attendance from existing published documents.
+- Enable Firebase Anonymous sign-in for student portal and ClassSpace operations. The anonymous Firebase session is technical plumbing, not a Rep-issued student login.
+
+Deploy both Hosting and Firestore rules:
+`firebase deploy --only firestore:rules,hosting`
+
+
+## v10.11 — Registration-number sign-in and dashboard topic button
+- Students choose a profile and enter the registration number saved in Student Details before opening the dashboard.
+- The dashboard no longer displays registration numbers and the topic picker needs only one draw button after sign-in.
+- Firestore session rules compare the submitted registration number with the selected student's published portal record. Deploy the updated rules as well as Hosting.
+- A registration number is guessable and is not a secure password. Do not rely on this check for sensitive data or high-stakes identity verification.
+- Enter student registration numbers in Admin → Students → Student Details, then publish/update the student portals. Registration numbers are intentionally not embedded in source files.
+
+Deploy both Hosting and Firestore rules:
 `firebase deploy --only firestore:rules,hosting`

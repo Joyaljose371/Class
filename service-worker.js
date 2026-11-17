@@ -1,4 +1,4 @@
-const CACHE='classpilot-v10-9-student-pwa-private-votes';
+const CACHE='classpilot-v10-11-student-registration-login';
 const SHELL=[
   './',
   './index.html',
