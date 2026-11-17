@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ClassPilot — CR Management System</title>
 <meta name="theme-color" content="#4158d0">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ClassPilot">
@@ -501,7 +502,7 @@ body{width:100%;max-width:100vw}
           <div class="topic-list" id="topicPoolList"></div>
         </div>
         <div class="card span-12">
-          <div class="section-title"><div><h3>Topics already assigned</h3><div class="small">Current-round assignments from verified student accounts.</div></div><button class="btn soft" onclick="loadAssignmentTopicDraws()">Refresh</button></div>
+          <div class="section-title"><div><h3>Topic assignment history</h3><div class="small">Every published round and its student-topic assignments stay saved, including after a new round starts.</div></div><button class="btn soft" onclick="loadAssignmentTopicDraws()">Refresh</button></div>
           <div class="list" id="topicDrawsList"><div class="small">Publish a topic pool to start a draw round.</div></div>
         </div>
       </div>
@@ -1088,12 +1089,25 @@ async function loadAssignmentTopicDraws(){
  if(!currentUser||!db){box.innerHTML='<div class="small">Sign in as the ClassPilot administrator to view assigned topics.</div>';return}
  box.innerHTML='<div class="small">Loading assignments…</div>';
  try{
-   const poolSnap=await db.collection("assignmentTopicPools").doc("current").get();
-   if(!poolSnap.exists||!poolSnap.data().roundId){box.innerHTML='<div class="small">No topic round has been published.</div>';return}
-   const roundId=poolSnap.data().roundId;
-   const draws=await db.collection("assignmentTopicPools").doc("current").collection("rounds").doc(roundId).collection("draws").get();
-   const assignments=draws.docs.map(doc=>doc.data()).sort((a,b)=>(b.drawnAtMs||0)-(a.drawnAtMs||0));
-   box.innerHTML=assignments.length?assignments.map(draw=>`<div class="item"><div class="row"><div class="grow"><b>${escapeAdminHtml(draw.studentName||"Student")}</b><div class="small">Reg: ${escapeAdminHtml(draw.regNo||"Not recorded")} · ${draw.drawnAtMs?new Date(draw.drawnAtMs).toLocaleString():""}</div></div><span class="badge">${escapeAdminHtml(draw.topic||"")}</span></div></div>`).join(""):'<div class="small">No topics have been assigned in this round yet.</div>';
+   const poolRef=db.collection("assignmentTopicPools").doc("current");
+   const [poolSnap,roundsSnap]=await Promise.all([poolRef.get(),poolRef.collection("rounds").get()]);
+   if(roundsSnap.empty){box.innerHTML='<div class="small">No topic rounds have been published yet.</div>';return}
+   const currentRoundId=poolSnap.exists?String(poolSnap.data().roundId||""):"";
+   const rounds=roundsSnap.docs
+     .map(doc=>({id:doc.id,...doc.data()}))
+     .sort((a,b)=>(Number(b.updatedAtMs)||0)-(Number(a.updatedAtMs)||0));
+   const history=await Promise.all(rounds.map(async round=>{
+     const draws=await poolRef.collection("rounds").doc(round.id).collection("draws").get();
+     const assignments=draws.docs.map(doc=>doc.data()).sort((a,b)=>(Number(b.drawnAtMs)||0)-(Number(a.drawnAtMs)||0));
+     return {round,assignments};
+   }));
+   box.innerHTML=history.map(({round,assignments})=>{
+     const roundId=String(round.roundId||round.id);
+     const current=roundId===currentRoundId;
+     const date=Number(round.updatedAtMs)?new Date(Number(round.updatedAtMs)).toLocaleString():"Date unavailable";
+     const rows=assignments.length?assignments.map(draw=>`<div class="item"><div class="row"><div class="grow"><b>${escapeAdminHtml(draw.studentName||"Student")}</b><div class="small">Reg: ${escapeAdminHtml(draw.regNo||"Not recorded")} · ${draw.drawnAtMs?new Date(draw.drawnAtMs).toLocaleString():""}</div></div><span class="badge">${escapeAdminHtml(draw.topic||"")}</span></div></div>`).join(""):'<div class="small">No topics have been assigned in this round yet.</div>';
+     return `<div class="card" style="padding:12px;margin-bottom:10px"><div class="row" style="margin-bottom:10px"><div class="grow"><b>Round ${escapeAdminHtml(roundId.slice(0,8))}</b><div class="small">${escapeAdminHtml(date)}</div></div><span class="badge">${current?"Current":"Saved"}</span></div><div class="list">${rows}</div></div>`;
+   }).join("");
  }catch(error){
    console.error("Could not load assignment topic draws",error);
    box.innerHTML=`<div class="small">Could not load assignments: ${escapeAdminHtml(error.message)}</div>`;
@@ -1325,7 +1339,7 @@ async function syncWithCloud(force=false){
    pendingCloudSync=false;localStorage.setItem("cp_pending_sync","0");
    if(localHash!==lastCloudHash){await createBackup("Auto sync",localState,localHash);lastCloudHash=localHash}
    if(lastSyncLabel)lastSyncLabel.textContent="Synced " + new Date().toLocaleString();
-   setSyncStatus("online","Cloud synced"); await loadBackups(); await publishStudentPortals(true); await publishAssignmentTopicPool(true,false);
+   setSyncStatus("online","Cloud synced"); await loadBackups(); await publishStudentPortals(true);
  }catch(e){console.warn(e);pendingCloudSync=true;localStorage.setItem("cp_pending_sync","1");setSyncStatus("error","Sync error · local safe"); if(lastSyncLabel)lastSyncLabel.textContent=e?.message||"Sync failed"}
 }
 async function createBackup(label,state=appState(),hash=stableHash(appState())){
