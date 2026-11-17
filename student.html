@@ -610,6 +610,16 @@ function setAssignmentDrawAnimation(active,caption){
  animation.classList.toggle("is-shuffling",active);
  if(caption)animation.querySelector(".assignment-draw-caption").textContent=caption;
 }
+function showSavedAssignmentTopic(assignment){
+ setAssignmentDrawAnimation(false);
+ document.getElementById("assignmentTopicText").textContent=assignment.topic;
+ document.getElementById("assignmentTopicDate").textContent=`Assigned to ${assignment.studentName} · ${new Date(assignment.drawnAtMs).toLocaleString()}`;
+ assignmentDrawResult.hidden=false;
+ setAssignmentDrawStatus(`Your topic is locked to ${assignment.studentName} for this round. Keep it safe!`,"success");
+ assignmentDrawButton.dataset.busy="false";
+ assignmentDrawButton.disabled=true;
+ assignmentDrawButtonText.textContent="Topic locked for this round";
+}
 async function loadPublishedAssignmentTopics(){
  assignmentDrawResult.hidden=true;assignmentTopicRound=null;updateAssignmentDrawButton();
  if(!data||!selectedPortalId){setAssignmentDrawStatus("Sign in to load your student portal and topic draw.","info");return}
@@ -632,6 +642,14 @@ async function loadPublishedAssignmentTopics(){
    const roundData=round.data();
    if(!Array.isArray(roundData.topicIds)||!roundData.topicIds.length){setAssignmentDrawStatus("There are no topics in this round yet. Ask the Class Rep to update the topic list.","info");assignmentDrawButtonText.textContent="No topics available";return}
    assignmentTopicRound={id:roundId,topicIds:roundData.topicIds,topicTitles:roundData.topicTitles||{}};
+   const savedDraw=await round.ref.collection("draws").doc(selectedPortalId).get();
+   if(savedDraw.exists){
+     const assignment=savedDraw.data();
+     if(assignment.roundId!==roundId||assignment.portalId!==selectedPortalId)
+       throw new Error("The saved topic assignment does not match this student and round.");
+     showSavedAssignmentTopic(assignment);
+     return;
+   }
    updateAssignmentDrawButton();
    setAssignmentDrawStatus("Your student details are confirmed. Draw once to lock your topic for this round.","info");
  }catch(error){
@@ -697,10 +715,7 @@ async function confirmAndDrawAssignmentTopic(){
      if(assigned){assignment=assigned;break}
    }
    if(!assignment)throw new Error("All topics in this round have already been assigned. Ask the Class Rep to publish a new round.");
-   setAssignmentDrawAnimation(false);
-   document.getElementById("assignmentTopicText").textContent=assignment.topic;
-   document.getElementById("assignmentTopicDate").textContent=`Assigned to ${assignment.studentName} · ${new Date(assignment.drawnAtMs).toLocaleString()}`;
-   assignmentDrawResult.hidden=false;
+   showSavedAssignmentTopic(assignment);
    assignmentDrawResult.classList.remove("assignment-topic-result");
    void assignmentDrawResult.offsetWidth;
    assignmentDrawResult.classList.add("assignment-topic-result");
@@ -713,10 +728,6 @@ async function confirmAndDrawAssignmentTopic(){
        inline:"nearest"
      });
    });
-   setAssignmentDrawStatus(`Your topic is locked to ${assignment.studentName} for this round. Keep it safe!`,"success");
-   assignmentDrawButton.dataset.busy="false";
-   assignmentDrawButton.disabled=true;
-   assignmentDrawButtonText.textContent="Topic locked for this round";
  }catch(error){
    setAssignmentDrawAnimation(false);
    console.error("Assignment topic draw failed",error);
