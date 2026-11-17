@@ -8,7 +8,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ClassPilot">
-<link rel="manifest" href="manifest.webmanifest">
+<script>
+if(location.protocol==="http:"||location.protocol==="https:"){
+ const manifestLink=document.createElement("link");
+ manifestLink.rel="manifest";
+ manifestLink.href="manifest.webmanifest";
+ document.head.appendChild(manifestLink);
+}
+</script>
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
 :root{

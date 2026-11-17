@@ -13,6 +13,9 @@ This build is offline-first and installable.
 6. In ClassPilot → Settings → Cloud Sync, create/sign in to your private account.
 7. On Android/Chrome or supported desktop browsers use **Install App** / **Add to Home screen**.
 
+## Running locally
+Do not open `index.html` or `student.html` directly as a `file://` URL. Browsers block the PWA manifest in that context, and Firebase features require a web origin. Instead, serve this folder over HTTP, for example with the VS Code Live Server extension, and open its `http://localhost:...` URL. For full student authentication, add the local hostname to Firebase Authentication → Settings → Authorized domains if Firebase requests it.
+
 ## How data works
 - Every edit is written to local browser storage immediately.
 - If offline, the app keeps working and marks cloud sync as pending.
