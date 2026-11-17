@@ -72,7 +72,7 @@ Admin → Settings → Student View Portal now provides:
 - Publish / Update All
 - Copy Shared Link
 
-Privacy note: because this is a shared public name-picker, anyone with the link can choose another listed student's name. Only sanitized read-only data is published. If stronger privacy is required, add per-student PIN verification.
+Privacy note: the shared name-picker lists student names and optional registration numbers. A selection alone does not grant access: the private student access code must be verified before the student's portal data or assignment draw is available. Keep access codes private.
 
 
 ## v10 — ClassSpace
@@ -231,3 +231,14 @@ Restored:
 
 This is a Hosting-only UI fix:
 `firebase deploy --only hosting`
+
+
+## v10.9 — Verified assignment topic draws
+The admin Topic Roulette page now publishes assignment topics to the shared student portal. Students must already have verified their portal with their private access code, then confirm the name and registration number on their ID card before drawing.
+
+Each verified student receives one topic per published round. Firestore transactions create a student assignment and a topic lock together, so concurrent draws cannot assign one topic to two students. The admin can view assignments for the active round. Publishing a new round makes the topics available again; old round records remain in Firestore.
+
+Before students draw, add each participant's registration number under Admin → Students → Student Details, publish/update the student portals, upload or enter the topic list under Admin → Topic Roulette, and publish the round.
+
+Deploy both the updated Firestore rules and pages:
+`firebase deploy --only firestore:rules,hosting`

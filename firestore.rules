@@ -54,6 +54,94 @@ service cloud.firestore {
                     && (request.auth.uid == userId || isClassAdmin());
     }
 
+    function hasVerifiedStudentSession() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/studentSessions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId is string;
+    }
+
+    function verifiedPortalId() {
+      return get(/databases/$(database)/documents/studentSessions/$(request.auth.uid)).data.portalId;
+    }
+
+    // Topic locks are anonymous to students; assignment records are private to
+    // their verified student and listable only by the ClassPilot admin.
+    match /assignmentTopicPools/{poolId} {
+      allow get: if poolId == "current" && (isClassAdmin() || hasVerifiedStudentSession());
+      allow list: if false;
+      allow create, update: if poolId == "current"
+        && isClassAdmin()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.roundId is string
+        && request.resource.data.topicIds is list
+        && request.resource.data.topicIds.size() <= 300
+        && request.resource.data.topicTitles is map
+        && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(request.resource.data.roundId))
+        && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(request.resource.data.roundId)).data.ownerUid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(request.resource.data.roundId)).data.topicIds == request.resource.data.topicIds
+        && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(request.resource.data.roundId)).data.topicTitles == request.resource.data.topicTitles;
+      allow delete: if false;
+
+      match /rounds/{roundId} {
+        allow get: if isClassAdmin()
+          || (hasVerifiedStudentSession()
+            && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId);
+        allow list: if isClassAdmin();
+        allow create: if isClassAdmin()
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.roundId == roundId
+          && request.resource.data.topicIds is list
+          && request.resource.data.topicIds.size() <= 300
+          && request.resource.data.topicTitles is map
+          && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current)
+          && getAfter(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId;
+        allow update, delete: if false;
+
+        match /locks/{topicId} {
+          allow get: if isClassAdmin()
+            || (hasVerifiedStudentSession()
+              && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId);
+          allow list: if false;
+          allow create: if hasVerifiedStudentSession()
+            && request.resource.data.keys().hasOnly(['roundId', 'topicId'])
+            && request.resource.data.roundId == roundId
+            && request.resource.data.topicId == topicId
+            && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId
+            && get(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)).data.topicIds.hasAny([topicId])
+            && !exists(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId()))
+            && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId()))
+            && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/draws/$(verifiedPortalId())).data.topicId == topicId;
+          allow update, delete: if false;
+        }
+
+        match /draws/{portalId} {
+          allow get: if isClassAdmin() || isCurrentStudent(portalId);
+          allow list: if isClassAdmin();
+          allow create: if isCurrentStudent(portalId)
+            && request.resource.data.keys().hasOnly(['ownerUid', 'portalId', 'roundId', 'topicId', 'topic', 'studentName', 'regNo', 'drawnAtMs'])
+            && request.resource.data.keys().hasAll(['ownerUid', 'portalId', 'roundId', 'topicId', 'topic', 'studentName', 'regNo', 'drawnAtMs'])
+            && request.resource.data.ownerUid == request.auth.uid
+            && request.resource.data.portalId == portalId
+            && request.resource.data.roundId == roundId
+            && request.resource.data.topicId is string
+            && request.resource.data.topic is string
+            && request.resource.data.studentName is string
+            && request.resource.data.regNo is string
+            && request.resource.data.drawnAtMs is int
+            && get(/databases/$(database)/documents/assignmentTopicPools/current).data.roundId == roundId
+            && get(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)).data.topicIds.hasAny([request.resource.data.topicId])
+            && get(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)).data.topicTitles[request.resource.data.topicId] == request.resource.data.topic
+            && get(/databases/$(database)/documents/studentPortals/$(portalId)).data.studentName == request.resource.data.studentName
+            && get(/databases/$(database)/documents/studentPortals/$(portalId)).data.regNo == request.resource.data.regNo
+            && !exists(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/locks/$(request.resource.data.topicId))
+            && existsAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/locks/$(request.resource.data.topicId))
+            && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/locks/$(request.resource.data.topicId)).data.roundId == roundId
+            && getAfter(/databases/$(database)/documents/assignmentTopicPools/current/rounds/$(roundId)/locks/$(request.resource.data.topicId)).data.topicId == request.resource.data.topicId;
+          allow update, delete: if false;
+        }
+      }
+    }
+
     function isClassAdmin() {
       return request.auth != null
         && get(/databases/$(database)/documents/studentPortalDirectory/current).data.ownerUid == request.auth.uid;
