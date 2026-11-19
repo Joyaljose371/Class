@@ -427,6 +427,16 @@ body{width:100%;max-width:100vw}
       <div class="card">
         <div class="section-title"><h3>Student Directory</h3><button class="btn soft" onclick="addStudent()">+ Add Student</button></div>
         <div class="small" style="margin-bottom:10px">Only active students appear in attendance. Omitted students stay in your private records and can be restored.</div>
+        <div class="bulk-panel hidden" id="topicAssignmentExportPanel">
+          <div class="section-title" style="margin-bottom:8px"><h3 style="font-size:15px">Download Student Topics</h3><span class="small">Choose a round to download or copy its student-topic list.</span></div>
+          <div class="actions">
+            <select id="topicAssignmentExportRound" aria-label="Topic assignment round" onchange="loadSelectedTopicAssignmentExportRound()" disabled></select>
+            <button class="btn primary" id="topicAssignmentExportDownload" onclick="downloadTopicAssignmentExport()" disabled>Download CSV</button>
+            <button class="btn soft" id="topicAssignmentExportCopy" onclick="copyTopicAssignmentExport()" disabled>Copy for Sheets</button>
+            <button class="btn soft" onclick="refreshTopicAssignmentExportAccess()">Refresh rounds</button>
+          </div>
+          <div class="small" id="topicAssignmentExportStatus" role="status" aria-live="polite" style="margin-top:8px">Checking admin access…</div>
+        </div>
         <div class="bulk-panel">
           <div class="section-title" style="margin-bottom:8px"><h3 style="font-size:15px">Copy Student Details</h3><span class="small">Choose fields and copy the whole active class in one tap.</span></div>
           <div class="check-row">
@@ -1113,6 +1123,141 @@ async function loadAssignmentTopicDraws(){
    box.innerHTML=`<div class="small">Could not load assignments: ${escapeAdminHtml(error.message)}</div>`;
  }
 }
+let topicAssignmentExportAdminUid="",topicAssignmentExportRows=[],topicAssignmentExportRoundId="",topicAssignmentExportRequestId=0;
+function setTopicAssignmentExportStatus(message){
+ document.getElementById("topicAssignmentExportStatus").textContent=message;
+}
+function setTopicAssignmentExportButtonsEnabled(enabled){
+ document.getElementById("topicAssignmentExportDownload").disabled=!enabled;
+ document.getElementById("topicAssignmentExportCopy").disabled=!enabled;
+}
+async function refreshTopicAssignmentExportAccess(){
+ const panel=document.getElementById("topicAssignmentExportPanel");
+ const userUid=currentUser&&currentUser.uid;
+ topicAssignmentExportAdminUid="";
+ topicAssignmentExportRows=[];
+ topicAssignmentExportRoundId="";
+ topicAssignmentExportRequestId++;
+ setTopicAssignmentExportButtonsEnabled(false);
+ panel.classList.add("hidden");
+ if(!userUid||!db)return;
+ try{
+   const snapshot=await db.collection("studentPortalDirectory").doc("current").get();
+   if(!currentUser||currentUser.uid!==userUid)return;
+   if(!snapshot.exists||snapshot.data().ownerUid!==userUid)return;
+   topicAssignmentExportAdminUid=userUid;
+   panel.classList.remove("hidden");
+   await loadTopicAssignmentExportRounds();
+ }catch(error){
+   console.error("Could not verify admin access for topic export",error);
+   if(currentUser&&currentUser.uid===userUid){
+     panel.classList.remove("hidden");
+     setTopicAssignmentExportStatus("Could not verify admin access. Check your connection and try again.");
+   }
+ }
+}
+async function loadTopicAssignmentExportRounds(){
+ const select=document.getElementById("topicAssignmentExportRound");
+ const userUid=topicAssignmentExportAdminUid;
+ if(!userUid||!currentUser||currentUser.uid!==userUid||!db)return;
+ const requestId=++topicAssignmentExportRequestId;
+ topicAssignmentExportRows=[];
+ topicAssignmentExportRoundId="";
+ setTopicAssignmentExportButtonsEnabled(false);
+ select.disabled=true;
+ setTopicAssignmentExportStatus("Loading saved rounds…");
+ try{
+   const poolRef=db.collection("assignmentTopicPools").doc("current");
+   const [poolSnapshot,roundsSnapshot]=await Promise.all([poolRef.get(),poolRef.collection("rounds").get()]);
+   if(requestId!==topicAssignmentExportRequestId||!currentUser||currentUser.uid!==userUid)return;
+   if(roundsSnapshot.empty){
+     select.innerHTML="";
+     setTopicAssignmentExportStatus("No topic rounds have been published yet.");
+     return;
+   }
+   const currentRoundId=poolSnapshot.exists?String(poolSnapshot.data().roundId||""):"";
+   const rounds=roundsSnapshot.docs.map(doc=>({id:doc.id,...doc.data()}))
+     .sort((a,b)=>(Number(b.updatedAtMs)||0)-(Number(a.updatedAtMs)||0));
+   select.innerHTML="";
+   rounds.forEach(round=>{
+     const option=document.createElement("option");
+     option.value=round.id;
+     const roundId=String(round.roundId||round.id);
+     const date=Number(round.updatedAtMs)?new Date(Number(round.updatedAtMs)).toLocaleDateString():"Date unavailable";
+     option.textContent=`Round ${roundId.slice(0,8)} · ${date}${roundId===currentRoundId?" · Current":""}`;
+     select.appendChild(option);
+   });
+   select.disabled=false;
+   await loadSelectedTopicAssignmentExportRound();
+ }catch(error){
+   console.error("Could not load topic assignment rounds",error);
+   if(requestId===topicAssignmentExportRequestId&&currentUser&&currentUser.uid===userUid){
+     setTopicAssignmentExportStatus(`Could not load rounds: ${error.message||"Unknown error"}`);
+   }
+ }
+}
+async function loadSelectedTopicAssignmentExportRound(){
+ const select=document.getElementById("topicAssignmentExportRound");
+ const userUid=topicAssignmentExportAdminUid;
+ const roundId=select.value;
+ const requestId=++topicAssignmentExportRequestId;
+ topicAssignmentExportRows=[];
+ topicAssignmentExportRoundId=roundId;
+ setTopicAssignmentExportButtonsEnabled(false);
+ if(!userUid||!currentUser||currentUser.uid!==userUid||!db)return;
+ if(!roundId){
+   setTopicAssignmentExportStatus("No saved rounds are available.");
+   return;
+ }
+ setTopicAssignmentExportStatus("Loading this round’s assignments…");
+ try{
+   const snapshot=await db.collection("assignmentTopicPools").doc("current")
+     .collection("rounds").doc(roundId).collection("draws").get();
+   if(requestId!==topicAssignmentExportRequestId||!currentUser||currentUser.uid!==userUid||select.value!==roundId)return;
+   topicAssignmentExportRows=snapshot.docs.map(doc=>doc.data())
+     .map(draw=>({
+       studentName:String(draw.studentName||"Student"),
+       topic:String(draw.topic||""),
+       drawnAtMs:Number(draw.drawnAtMs)||0
+     }))
+     .sort((a,b)=>a.studentName.localeCompare(b.studentName,undefined,{sensitivity:"base"}));
+   setTopicAssignmentExportButtonsEnabled(topicAssignmentExportRows.length>0);
+   setTopicAssignmentExportStatus(topicAssignmentExportRows.length
+     ?`${topicAssignmentExportRows.length} student${topicAssignmentExportRows.length===1?" has":"s have"} a topic in this round.`
+     :"No students have received a topic in this round yet.");
+ }catch(error){
+   console.error("Could not load selected topic assignments",error);
+   if(requestId===topicAssignmentExportRequestId&&currentUser&&currentUser.uid===userUid){
+     setTopicAssignmentExportStatus(`Could not load assignments: ${error.message||"Unknown error"}`);
+   }
+ }
+}
+function topicAssignmentExportText(separator){
+ const escapeCell=value=>String(value).replace(/\r?\n|\t/g," ");
+ const lines=[["Student","Topic","Round","Assigned at"],...topicAssignmentExportRows.map(row=>[
+   row.studentName,row.topic,topicAssignmentExportRoundId,row.drawnAtMs?new Date(row.drawnAtMs).toISOString():""
+ ])];
+ if(separator===","){
+   return lines.map(line=>line.map(value=>`"${String(value).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+ }
+ return lines.map(line=>line.map(escapeCell).join("\t")).join("\n");
+}
+function downloadTopicAssignmentExport(){
+ if(!currentUser||currentUser.uid!==topicAssignmentExportAdminUid||!topicAssignmentExportRows.length)return;
+ const csv="\uFEFF"+topicAssignmentExportText(",");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;
+ link.download=`topic-assignments-round-${topicAssignmentExportRoundId}.csv`;
+ document.body.appendChild(link);
+ link.click();
+ link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function copyTopicAssignmentExport(){
+ if(!currentUser||currentUser.uid!==topicAssignmentExportAdminUid||!topicAssignmentExportRows.length)return;
+ await copyOrShow(topicAssignmentExportText("\t"),`${topicAssignmentExportRows.length} topic assignments copied`);
+}
 function toggleMobileMore(show){
   const s=document.getElementById("mobileMoreSheet");
   if(show===false)s.classList.add("hidden");
@@ -1127,7 +1272,7 @@ function showPage(id){
  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
  document.getElementById(id).classList.add("active");
  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
- if(id==="students") renderStudents();
+ if(id==="students"){renderStudents();refreshTopicAssignmentExportAccess()}
  if(id==="reports") renderReports();
  if(id==="settings") renderStudentPortalManager();
  if(id==="classspace") loadAdminClassSpace();
@@ -1630,6 +1775,7 @@ function initFirebaseAuth(){
  if(!firebaseReady){updateCloudUI();return}
  auth.onAuthStateChanged(async user=>{
    currentUser=user; updateCloudUI();
+   refreshTopicAssignmentExportAccess();
    if(user){
      renderStudentPortalManager();
      try{

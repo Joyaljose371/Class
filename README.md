@@ -270,3 +270,9 @@ Deploy both Hosting and Firestore rules:
 
 Deploy both Hosting and Firestore rules:
 `firebase deploy --only firestore:rules,hosting`
+
+## v10.12 — Admin topic assignment export
+- Admin → Students provides CSV download and copy-to-spreadsheet controls for topic assignments in a selected round.
+- Access is limited to the Firebase account that owns the class. Exporting is read-only and does not modify or delete student, topic, or assignment data.
+- Deploy Hosting only:
+  `firebase deploy --only hosting`
